@@ -10,22 +10,32 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: '#090d16',
-        surface: '#111827',
-        'surface-card': '#1a2236',
-        'surface-border': '#2a364f',
+        brand: {
+          50: '#f0f7f3',
+          100: '#e1f0e7',
+          200: '#c3e1cf',
+          500: '#005222',
+          DEFAULT: '#003717',
+          600: '#003717',
+          700: '#002911',
+          800: '#001c0c',
+          900: '#000f06'
+        },
+        surface: '#ffffff',
+        'surface-subtle': '#f8fafc',
+        'surface-border': '#e2e8f0',
         primary: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca'
+          50: '#f0f7f3',
+          100: '#e1f0e7',
+          500: '#005222',
+          600: '#003717',
+          700: '#002911'
         },
         accent: {
-          cyan: '#06b6d4',
-          emerald: '#10b981',
-          rose: '#f43f5e',
-          amber: '#f59e0b'
+          cyan: '#0284c7',
+          emerald: '#059669',
+          rose: '#e11d48',
+          amber: '#d97706'
         }
       },
       backgroundImage: {
