@@ -13,13 +13,18 @@ export default function FloatingRoleSwitcher() {
   const handleSelectRole = (role) => {
     setRole(role);
     setIsOpen(false);
-    toast.success(`Role view switched to ${role.toUpperCase()}`);
+    if (role === 'logged_out') {
+      toast('Switched to Logged Out Visitor view', { icon: '👋' });
+    } else {
+      toast.success(`Role view switched to ${role.toUpperCase()}`);
+    }
   };
 
   const roles = [
     { id: 'student', label: 'Student View', icon: GraduationCap, color: 'bg-emerald-600' },
     { id: 'teacher', label: 'Teacher View', icon: UserCheck, color: 'bg-amber-600' },
-    { id: 'admin', label: 'Admin View', icon: ShieldCheck, color: 'bg-rose-700' }
+    { id: 'admin', label: 'Admin View', icon: ShieldCheck, color: 'bg-rose-700' },
+    { id: 'logged_out', label: 'Logged Out (Visitor)', icon: Sparkles, color: 'bg-slate-700' }
   ];
 
   return (
@@ -34,7 +39,7 @@ export default function FloatingRoleSwitcher() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="mb-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2.5 space-y-2 divide-y divide-slate-100"
+            className="mb-3 w-60 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2.5 space-y-2 divide-y divide-slate-100"
           >
             <div className="px-2 py-1 flex items-center justify-between">
               <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-700">
@@ -52,12 +57,12 @@ export default function FloatingRoleSwitcher() {
             <div className="pt-2 space-y-1">
               {roles.map((r) => {
                 const IconComp = r.icon;
-                const isSelected = user.role === r.id;
+                const isSelected = r.id === 'logged_out' ? !user : user?.role === r.id;
                 return (
                   <button
                     key={r.id}
                     onClick={() => handleSelectRole(r.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-brand text-white shadow-md shadow-brand/20'
                         : 'text-slate-700 hover:bg-slate-100'
@@ -78,8 +83,10 @@ export default function FloatingRoleSwitcher() {
         {/* Floating Draggable Circle Button */}
         <div className="flex items-center space-x-2">
           {/* Label pill showing current active role */}
-          <span className="hidden sm:inline-block px-2.5 py-1 rounded-full bg-brand text-white text-[11px] font-bold shadow-lg uppercase tracking-wider">
-            {user.role} Demo
+          <span className={`hidden sm:inline-block px-2.5 py-1 rounded-full text-white text-[11px] font-bold shadow-lg uppercase tracking-wider ${
+            user ? 'bg-brand' : 'bg-slate-800 border border-slate-600'
+          }`}>
+            {user ? `${user.role} Demo` : 'Visitor (Logged Out)'}
           </span>
 
           <button
