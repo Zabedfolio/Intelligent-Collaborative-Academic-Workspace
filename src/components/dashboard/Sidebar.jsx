@@ -64,6 +64,9 @@ export default function Sidebar() {
 
   const handleItemClick = (id) => {
     setActiveTab(id);
+    if (id === 'exam-prep') {
+      router.push('/exams');
+    }
   };
 
   const handleLogout = () => {

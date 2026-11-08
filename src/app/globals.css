@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Titles, Display Headings, and Brand Typography (Bricolage Grotesque - from Findora) */
+h1, h2, h3, h4, h5, h6, .font-heading, .font-display {
+  font-family: "Bricolage Grotesque Variable", "Bricolage Grotesque", var(--font-bricolage), ui-sans-serif, system-ui, sans-serif !important;
+  letter-spacing: -0.025em;
+}
+
+/* Ensure child elements inside headings inherit heading font */
+h1 *, h2 *, h3 *, h4 *, h5 *, h6 * {
+  font-family: inherit !important;
+}

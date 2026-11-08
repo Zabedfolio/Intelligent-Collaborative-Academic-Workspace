@@ -9,6 +9,7 @@ import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import FileUploadDropzone from '../../components/common/FileUploadDropzone';
 import EmptyState from '../../components/common/EmptyState';
+import Pagination from '../../components/common/Pagination';
 import { ListSkeleton, CardSkeleton, Spinner } from '../../components/common/SkeletonLoader';
 import { useAuthStore } from '../../store/useAuthStore';
 import { 
@@ -107,10 +108,41 @@ export default function DashboardPage() {
   ];
   const [selectedCourse, setSelectedCourse] = useState('cs401');
 
+  // Course materials pagination state (10 or 20 items per page)
+  const [resourcePage, setResourcePage] = useState(1);
+  const [resourcePageSize, setResourcePageSize] = useState(10);
+
   // Filtered resources based on selected course
   const displayedResources = resources.filter(
     (r) => r.course?.toLowerCase() === selectedCourse.toLowerCase()
   );
+
+  // Paginated resources for active page (no full page reload)
+  const paginatedResources = displayedResources.slice(
+    (resourcePage - 1) * resourcePageSize,
+    resourcePage * resourcePageSize
+  );
+
+  // Load 100 sample documents into the course catalog to test pagination
+  const handleLoad100Resources = () => {
+    const hundredItems = Array.from({ length: 100 }, (_, i) => ({
+      id: `res-archive-${i + 1}`,
+      title: `CS401 Lecture Slide Deck #${i + 1} - Topic Unit ${(i % 12) + 1}`,
+      fileName: `CS401_Lecture_${String(i + 1).padStart(3, '0')}.pdf`,
+      size: `${((i % 4) + 1.2).toFixed(1)} MB`,
+      type: 'PDF',
+      uploadedAt: `${(i % 14) + 1} days ago`,
+      status: 'Indexed in RAG',
+      course: 'cs401',
+      author: i % 2 === 0 ? 'Prof. Anderson' : 'Course TA Team',
+      pages: (i % 30) + 10,
+      excerpt: `Official lecture slides for Topic Unit ${(i % 12) + 1}. All concepts, equations, and diagrams vectorized for hallucination-free syllabus RAG search.`
+    }));
+    setResources(hundredItems);
+    setSelectedCourse('cs401');
+    setResourcePage(1);
+    toast.success('Loaded 100 items into list! Click "Next" to load the next 10/20 items.');
+  };
 
   // Smoothly scroll and activate dropzone when clicking "Upload" CTA
   const handleTriggerUpload = () => {
@@ -225,6 +257,33 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Exam Prep & Practice Quick Banner */}
+          <div className="bg-gradient-to-r from-emerald-950 to-brand text-white rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5 border border-emerald-900/50">
+            <div className="space-y-1.5">
+              <div className="flex items-center space-x-2">
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-white/10 text-emerald-300 border border-white/15">
+                  Exam Preparation Mode
+                </span>
+                <span className="text-xs text-emerald-200">100 Question Master Bank</span>
+              </div>
+              <h3 className="text-lg font-bold text-white">
+                Preparing for Midterm 2? Practice curriculum questions with instant citations.
+              </h3>
+              <p className="text-xs text-emerald-100/80 max-w-xl">
+                Switch seamlessly between Exam Overview, Practice Blitz, and the 100-Question Bank without full page reloads.
+              </p>
+            </div>
+            <Link
+              href="/exams"
+              id="open-exam-page-cta"
+              className="px-5 py-2.5 rounded-xl bg-white text-brand font-bold text-xs hover:bg-emerald-50 transition-all shadow-xs flex items-center space-x-2 shrink-0 cursor-pointer"
+            >
+              <GraduationCap className="w-4 h-4" />
+              <span>Open Exam Prep & Practice</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
           {/* 1. Drag-and-Drop / Click File Upload Section */}
           <section className="space-y-3">
             <div className="flex items-center justify-between">
@@ -244,20 +303,32 @@ export default function DashboardPage() {
 
           {/* 2. Course Materials & Active Resources List */}
           <section className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
                   <BookOpen className="w-5 h-5 text-brand" />
                   <span>Course Materials & Syllabus Grounding</span>
                 </h3>
                 <p className="text-xs text-slate-500">
-                  {resources.length} documents currently indexed for this semester.
+                  {displayedResources.length} documents indexed for this course. Split into pages of {resourcePageSize} items.
                 </p>
               </div>
 
-              <span className="text-xs text-slate-500 font-medium">
-                {isFetching ? 'Refreshing data...' : 'Showing verified documents'}
-              </span>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleLoad100Resources}
+                  id="load-100-resources-btn"
+                  className="px-3 py-1.5 rounded-xl border border-brand/30 bg-brand-50 text-brand text-xs font-bold hover:bg-brand hover:text-white transition-all cursor-pointer shadow-2xs"
+                  title="Populate 100 resources to test pagination without full page reload"
+                >
+                  <Layers className="w-3.5 h-3.5 inline mr-1" />
+                  Load 100 Sample Items
+                </button>
+
+                <span className="text-xs text-slate-500 font-medium">
+                  {isFetching ? 'Refreshing...' : 'Verified docs'}
+                </span>
+              </div>
             </div>
 
             {/* Course Selector Tabs */}
@@ -271,7 +342,10 @@ export default function DashboardPage() {
                   <button
                     key={course.id}
                     id={`course-tab-${course.id}`}
-                    onClick={() => setSelectedCourse(course.id)}
+                    onClick={() => {
+                      setSelectedCourse(course.id);
+                      setResourcePage(1);
+                    }}
                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shrink-0 cursor-pointer ${
                       isSelected
                         ? 'bg-brand text-white shadow-xs'
@@ -309,7 +383,7 @@ export default function DashboardPage() {
               />
             ) : (
               <div className="space-y-3">
-                {displayedResources.map((res) => (
+                {paginatedResources.map((res) => (
                   <div
                     key={res.id}
                     className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs hover:shadow-md transition-all"
@@ -364,6 +438,22 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
+
+                {/* Pagination Controls for Course Resources */}
+                {displayedResources.length > 0 && (
+                  <Pagination
+                    currentPage={resourcePage}
+                    totalItems={displayedResources.length}
+                    pageSize={resourcePageSize}
+                    onPageChange={(p) => setResourcePage(p)}
+                    onPageSizeChange={(newSize) => {
+                      setResourcePageSize(newSize);
+                      setResourcePage(1);
+                    }}
+                    pageSizeOptions={[10, 20, 50]}
+                    itemName="course documents"
+                  />
+                )}
               </div>
             )}
           </section>
