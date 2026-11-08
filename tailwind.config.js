@@ -46,6 +46,10 @@ module.exports = {
         glow: '0 0 25px -5px rgba(99, 102, 241, 0.3)',
         'glow-cyan': '0 0 25px -5px rgba(6, 182, 212, 0.3)',
         glass: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+      },
+      fontFamily: {
+        heading: ['var(--font-bricolage)', '"Bricolage Grotesque"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-bricolage)', '"Bricolage Grotesque"', 'ui-sans-serif', 'system-ui', 'sans-serif']
       }
     }
   },

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { authClient } from '../lib/auth-client';
 
 // Pre-seeded accounts for development & evaluation
 const DEFAULT_ACCOUNTS = [
@@ -161,8 +162,54 @@ export const useAuthStore = create((set, get) => ({
   // Login handler
   login: async ({ email, password, rememberMe }) => {
     const normalizedEmail = (email || '').trim().toLowerCase();
-    const accounts = getStoredAccounts();
 
+    // 1. Attempt Better Auth sign in first
+    try {
+      const { data, error } = await authClient.signIn.email({
+        email: normalizedEmail,
+        password,
+        rememberMe: !!rememberMe
+      });
+
+      if (data?.user) {
+        const sessionUser = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role || 'student',
+          avatar: data.user.image || '',
+          initials: data.user.name
+            ? data.user.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()
+            : 'US',
+          status: 'verified',
+          department: data.user.department || 'Academic Department'
+        };
+
+        if (typeof window !== 'undefined') {
+          if (rememberMe) {
+            localStorage.setItem('icaw_auth_session', JSON.stringify(sessionUser));
+            sessionStorage.removeItem('icaw_auth_session');
+          } else {
+            sessionStorage.setItem('icaw_auth_session', JSON.stringify(sessionUser));
+            localStorage.removeItem('icaw_auth_session');
+          }
+        }
+
+        set({
+          user: sessionUser,
+          isAuthenticated: true,
+          rememberMe: !!rememberMe,
+          activeTab: 'dashboard'
+        });
+
+        return { success: true, user: sessionUser };
+      }
+    } catch (authErr) {
+      console.warn('Better Auth signIn fallback to local accounts:', authErr?.message || authErr);
+    }
+
+    // 2. Fallback to pre-seeded evaluation demo accounts
+    const accounts = getStoredAccounts();
     const matchedUser = accounts.find(
       (acc) => acc.email.toLowerCase() === normalizedEmail && acc.password === password
     );
@@ -213,9 +260,65 @@ export const useAuthStore = create((set, get) => ({
   // Register handler
   register: async ({ name, email, password, role }) => {
     const normalizedEmail = (email || '').trim().toLowerCase();
-    const accounts = getStoredAccounts();
 
-    // Check for existing email registration
+    // 1. Attempt Better Auth sign up
+    try {
+      const { data, error } = await authClient.signUp.email({
+        name: name.trim(),
+        email: normalizedEmail,
+        password,
+        role: role || 'student'
+      });
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message || 'Registration failed with Better Auth'
+        };
+      }
+
+      if (data?.user) {
+        const initials = name
+          .trim()
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase();
+
+        const sessionUser = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: role || data.user.role || 'student',
+          avatar: data.user.image || '',
+          initials,
+          status: role === 'teacher' ? 'pending_approval' : 'verified',
+          department: 'Academic Department'
+        };
+
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('icaw_auth_session', JSON.stringify(sessionUser));
+        }
+
+        set({
+          user: sessionUser,
+          isAuthenticated: true,
+          activeTab: 'dashboard'
+        });
+
+        return {
+          success: true,
+          user: sessionUser,
+          role: role
+        };
+      }
+    } catch (authErr) {
+      console.warn('Better Auth signUp fallback to local registration:', authErr?.message || authErr);
+    }
+
+    // 2. Fallback to local accounts directory
+    const accounts = getStoredAccounts();
     const existing = accounts.find(
       (acc) => acc.email.toLowerCase() === normalizedEmail
     );
@@ -362,7 +465,12 @@ export const useAuthStore = create((set, get) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
 
   // Logout handler
-  logout: () => {
+  logout: async () => {
+    try {
+      await authClient.signOut();
+    } catch (err) {
+      console.warn('Better Auth signOut warning:', err?.message || err);
+    }
     if (typeof window !== 'undefined') {
       localStorage.removeItem('icaw_auth_session');
       sessionStorage.removeItem('icaw_auth_session');
