@@ -29,9 +29,14 @@ import {
   GraduationCap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import StudentAITutorView from '../../components/dashboard/StudentAITutorView';
+import StudentAnalyticsView from '../../components/dashboard/StudentAnalyticsView';
+import StudentStudyGroupsView from '../../components/dashboard/StudentStudyGroupsView';
+import StudentSettingsView from '../../components/dashboard/StudentSettingsView';
+import StudentCoursesView from '../../components/dashboard/StudentCoursesView';
 
 export default function DashboardPage() {
-  const { user, activeTab, initAuth } = useAuthStore();
+  const { user, activeTab, setActiveTab, updateLastScope, initAuth } = useAuthStore();
 
   // Resource items state
   const [resources, setResources] = useState([
@@ -236,8 +241,34 @@ export default function DashboardPage() {
 
         {/* Dashboard Body Content */}
         <main className="flex-1 p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
-          
-          {/* Welcome Banner */}
+          {activeTab === 'ai-tutor' ? (
+            <StudentAITutorView user={user} />
+          ) : activeTab === 'analytics' ? (
+            <StudentAnalyticsView user={user} />
+          ) : activeTab === 'study-groups' ? (
+            <StudentStudyGroupsView user={user} />
+          ) : activeTab === 'settings' ? (
+            <StudentSettingsView user={user} />
+          ) : activeTab === 'my-courses' ? (
+            <StudentCoursesView
+              user={user}
+              onSelectCourseForTutor={(c) => {
+                if (updateLastScope) {
+                  updateLastScope({
+                    courseId: c.id,
+                    courseName: c.name,
+                    departmentName: c.department,
+                    semesterName: c.semester,
+                    examType: 'midterm'
+                  });
+                }
+                setActiveTab('ai-tutor');
+                toast.success(`Active tutor scope set to ${c.code}`);
+              }}
+            />
+          ) : (
+            <>
+              {/* Welcome Banner */}
           <div className="bg-brand text-white rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 text-emerald-200 border border-white/15">
@@ -456,6 +487,8 @@ export default function DashboardPage() {
               </div>
             )}
           </section>
+          </>
+        )}
 
         </main>
 
