@@ -183,3 +183,4 @@ export default function StudentCoursesView({ user, onSelectCourseForTutor }) {
     </div>
   );
 }
+

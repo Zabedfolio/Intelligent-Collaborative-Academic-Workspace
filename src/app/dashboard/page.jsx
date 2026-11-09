@@ -26,7 +26,8 @@ import {
   Layers,
   ArrowRight,
   FolderOpen,
-  GraduationCap
+  GraduationCap,
+  CheckSquare
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import StudentAITutorView from '../../components/dashboard/StudentAITutorView';
@@ -34,9 +35,16 @@ import StudentAnalyticsView from '../../components/dashboard/StudentAnalyticsVie
 import StudentStudyGroupsView from '../../components/dashboard/StudentStudyGroupsView';
 import StudentSettingsView from '../../components/dashboard/StudentSettingsView';
 import StudentCoursesView from '../../components/dashboard/StudentCoursesView';
+import TeacherSettingsView from '../../components/dashboard/TeacherSettingsView';
+import TeacherCourseManagementView from '../../components/dashboard/TeacherCourseManagementView';
+import TeacherResourceIngestionView from '../../components/dashboard/TeacherResourceIngestionView';
+import TeacherAIConfigView from '../../components/dashboard/TeacherAIConfigView';
+import TeacherAnswerReviewView from '../../components/dashboard/TeacherAnswerReviewView';
+import TeacherClassAnalyticsView from '../../components/dashboard/TeacherClassAnalyticsView';
 
 export default function DashboardPage() {
   const { user, activeTab, setActiveTab, updateLastScope, initAuth } = useAuthStore();
+  const isTeacher = user?.role === 'teacher';
 
   // Resource items state
   const [resources, setResources] = useState([
@@ -241,15 +249,28 @@ export default function DashboardPage() {
 
         {/* Dashboard Body Content */}
         <main className="flex-1 p-6 sm:p-8 space-y-8 max-w-6xl mx-auto w-full">
-          {activeTab === 'ai-tutor' ? (
+          {/* TEACHER ROLE VIEWS */}
+          {isTeacher && activeTab === 'settings' ? (
+            <TeacherSettingsView user={user} />
+          ) : isTeacher && activeTab === 'course-management' ? (
+            <TeacherCourseManagementView user={user} onNavigate={(tab) => setActiveTab(tab)} />
+          ) : isTeacher && activeTab === 'resource-ingestion' ? (
+            <TeacherResourceIngestionView user={user} />
+          ) : isTeacher && activeTab === 'ai-config' ? (
+            <TeacherAIConfigView user={user} />
+          ) : isTeacher && activeTab === 'answer-review' ? (
+            <TeacherAnswerReviewView user={user} />
+          ) : isTeacher && activeTab === 'class-analytics' ? (
+            <TeacherClassAnalyticsView user={user} />
+          ) : !isTeacher && activeTab === 'ai-tutor' ? (
             <StudentAITutorView user={user} />
-          ) : activeTab === 'analytics' ? (
+          ) : !isTeacher && activeTab === 'analytics' ? (
             <StudentAnalyticsView user={user} />
-          ) : activeTab === 'study-groups' ? (
+          ) : !isTeacher && activeTab === 'study-groups' ? (
             <StudentStudyGroupsView user={user} />
-          ) : activeTab === 'settings' ? (
+          ) : !isTeacher && activeTab === 'settings' ? (
             <StudentSettingsView user={user} />
-          ) : activeTab === 'my-courses' ? (
+          ) : !isTeacher && activeTab === 'my-courses' ? (
             <StudentCoursesView
               user={user}
               onSelectCourseForTutor={(c) => {
@@ -269,50 +290,80 @@ export default function DashboardPage() {
           ) : (
             <>
               {/* Welcome Banner */}
-          <div className="bg-brand text-white rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 text-emerald-200 border border-white/15">
-                {user?.role || 'Guest'} Workspace
-              </span>
-              <h2 className="text-xl sm:text-2xl font-bold">
-                Welcome back{user?.name ? `, ${user.name}` : ''}!
-              </h2>
-              <p className="text-xs sm:text-sm text-white/80 max-w-xl">
-                Upload course syllabi, lecture slides, or exam banks. Materials are vectorized to power the hallucination-free RAG AI tutor.
-              </p>
-            </div>
-            <div className="shrink-0 flex items-center space-x-2 bg-white/10 px-4 py-2.5 rounded-2xl border border-white/15 text-xs font-medium">
-              <Sparkles className="w-4 h-4 text-emerald-300" />
-              <span>RAG Engine Online</span>
-            </div>
-          </div>
-
-          {/* Exam Prep & Practice Quick Banner */}
-          <div className="bg-gradient-to-r from-emerald-950 to-brand text-white rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5 border border-emerald-900/50">
-            <div className="space-y-1.5">
-              <div className="flex items-center space-x-2">
-                <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-white/10 text-emerald-300 border border-white/15">
-                  Exam Preparation Mode
-                </span>
-                <span className="text-xs text-emerald-200">100 Question Master Bank</span>
+              <div className="bg-brand text-white rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 text-emerald-200 border border-white/15">
+                    {isTeacher ? 'Faculty Workspace' : (user?.role || 'Guest') + ' Workspace'}
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-bold">
+                    Welcome back{user?.name ? `, ${isTeacher ? 'Professor ' : ''}${user.name}` : ''}!
+                  </h2>
+                  <p className="text-xs sm:text-sm text-white/80 max-w-xl">
+                    {isTeacher
+                      ? 'Manage course materials, vectorization pipelines, AI tutor grounding policies, and classwide confusion analytics.'
+                      : 'Upload course syllabi, lecture slides, or exam banks. Materials are vectorized to power the hallucination-free RAG AI tutor.'}
+                  </p>
+                </div>
+                <div className="shrink-0 flex items-center space-x-2 bg-white/10 px-4 py-2.5 rounded-2xl border border-white/15 text-xs font-medium">
+                  <Sparkles className="w-4 h-4 text-emerald-300" />
+                  <span>RAG Engine Online</span>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-white">
-                Preparing for Midterm 2? Practice curriculum questions with instant citations.
-              </h3>
-              <p className="text-xs text-emerald-100/80 max-w-xl">
-                Switch seamlessly between Exam Overview, Practice Blitz, and the 100-Question Bank without full page reloads.
-              </p>
-            </div>
-            <Link
-              href="/exams"
-              id="open-exam-page-cta"
-              className="px-5 py-2.5 rounded-xl bg-white text-brand font-bold text-xs hover:bg-emerald-50 transition-all shadow-xs flex items-center space-x-2 shrink-0 cursor-pointer"
-            >
-              <GraduationCap className="w-4 h-4" />
-              <span>Open Exam Prep & Practice</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+
+              {/* Action Banner (Teacher vs Student) */}
+              {isTeacher ? (
+                <div className="bg-gradient-to-r from-emerald-950 to-brand text-white rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5 border border-emerald-900/50">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-white/10 text-emerald-300 border border-white/15">
+                        Pending Pedagogical Actions
+                      </span>
+                      <span className="text-xs text-emerald-200">3 Submissions Ready</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white">
+                      Midterm Diagnostic Exam: 3 Student Submissions Pending Rubric Review
+                    </h3>
+                    <p className="text-xs text-emerald-100/80 max-w-xl">
+                      Review AI-suggested scores against official course rubrics, calibrate points, and inspect confusion hotspots.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('answer-review')}
+                    className="px-5 py-2.5 rounded-xl bg-white text-brand font-bold text-xs hover:bg-emerald-50 transition-all shadow-xs flex items-center space-x-2 shrink-0 cursor-pointer"
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    <span>Open Answer Review</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-gradient-to-r from-emerald-950 to-brand text-white rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5 border border-emerald-900/50">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-white/10 text-emerald-300 border border-white/15">
+                        Exam Preparation Mode
+                      </span>
+                      <span className="text-xs text-emerald-200">100 Question Master Bank</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white">
+                      Preparing for Midterm 2? Practice curriculum questions with instant citations.
+                    </h3>
+                    <p className="text-xs text-emerald-100/80 max-w-xl">
+                      Switch seamlessly between Exam Overview, Practice Blitz, and the 100-Question Bank without full page reloads.
+                    </p>
+                  </div>
+                  <Link
+                    href="/exams"
+                    id="open-exam-page-cta"
+                    className="px-5 py-2.5 rounded-xl bg-white text-brand font-bold text-xs hover:bg-emerald-50 transition-all shadow-xs flex items-center space-x-2 shrink-0 cursor-pointer"
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                    <span>Open Exam Prep & Practice</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              )}
 
           {/* 1. Drag-and-Drop / Click File Upload Section */}
           <section className="space-y-3">

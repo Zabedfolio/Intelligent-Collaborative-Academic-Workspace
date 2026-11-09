@@ -242,3 +242,4 @@ export default function StudentSettingsView({ user }) {
     </div>
   );
 }
+

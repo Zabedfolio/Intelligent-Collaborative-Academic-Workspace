@@ -274,3 +274,4 @@ export default function StudentAnalyticsView({ user }) {
     </div>
   );
 }
+
