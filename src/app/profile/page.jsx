@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
 import Modal from '../../components/common/Modal';
-import EmptyState from '../../components/common/EmptyState';
+import AvailabilityCalendar from '../../components/profile/AvailabilityCalendar';
+import SkillTagInput from '../../components/profile/SkillTagInput';
+import AcademicScopeSelector from '../../components/profile/AcademicScopeSelector';
 import { useAuthStore } from '../../store/useAuthStore';
 import {
   User,
@@ -20,7 +21,6 @@ import {
   AlertCircle,
   Plus,
   Trash2,
-  X,
   Save,
   Users,
   Building2,
@@ -28,18 +28,28 @@ import {
   Layers,
   ArrowRight,
   ExternalLink,
-  Edit3,
   Check,
-  RotateCcw,
   Target,
-  FolderOpen
+  FolderOpen,
+  Settings
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, updateProfile, initAuth } = useAuthStore();
+  const {
+    user,
+    updateProfile,
+    updateAvailability,
+    updateLastScope,
+    initAuth
+  } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+
+  // Active navigation tab
+  // Students: 'general' | 'scope' | 'availability' | 'skills'
+  // Teachers: 'general' | 'affiliation' | 'courses'
+  const [activeTab, setActiveTab] = useState('general');
 
   useEffect(() => {
     setMounted(true);
@@ -47,20 +57,24 @@ export default function ProfilePage() {
   }, [initAuth]);
 
   // =========================================================================
-  // STUDENT STATE
+  // SHARED & STUDENT STATE
   // =========================================================================
+  const [name, setName] = useState('');
   const [studentBio, setStudentBio] = useState('');
   const [skills, setSkills] = useState([]);
-  const [newSkillInput, setNewSkillInput] = useState('');
   const [learningGoals, setLearningGoals] = useState([]);
   const [newGoalInput, setNewGoalInput] = useState('');
-  const [availability, setAvailability] = useState({
-    hoursPerWeek: 12,
-    preferredTimes: ['Weekday Evenings (6-9 PM)', 'Weekend Mornings (9 AM-12 PM)'],
-    groupSize: '3-4 students',
-    studyMode: 'Hybrid (Virtual + Campus)'
+  const [availabilityMatrix, setAvailabilityMatrix] = useState([]);
+  const [selectedScope, setSelectedScope] = useState({
+    departmentId: 'cse',
+    departmentName: 'Department of Computer Science & Engineering',
+    semesterId: 'fall-2026',
+    semesterName: 'Fall 2026',
+    courseId: 'cs401',
+    courseName: 'Advanced Machine Learning & Neural Networks',
+    examType: 'midterm'
   });
-  const [isSavingStudent, setIsSavingStudent] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // =========================================================================
   // TEACHER STATE
@@ -70,83 +84,162 @@ export default function ProfilePage() {
   const [designation, setDesignation] = useState('');
   const [officeHours, setOfficeHours] = useState('');
   const [coursesTaught, setCoursesTaught] = useState([]);
-  const [isSavingTeacher, setIsSavingTeacher] = useState(false);
   const [inspectingCourse, setInspectingCourse] = useState(null);
 
-  // Sync state from active user
+  // Sync component state from active user & stored profile
   useEffect(() => {
     if (!user) return;
 
+    setName(user.name || '');
+
     if (user.role === 'teacher') {
-      setTeacherBio(user.bio || 'Associate Professor of Computer Science specializing in NLP, retrieval-augmented generation architectures, and verifiable generative AI in higher education.');
+      setTeacherBio(
+        user.bio ||
+          'Associate Professor of Computer Science specializing in NLP, retrieval-augmented generation architectures, and verifiable generative AI in higher education.'
+      );
       setDepartment(user.department || 'Department of Computer Science & Artificial Intelligence');
       setDesignation(user.designation || 'Associate Professor & AI Curriculum Chair');
-      setOfficeHours(user.officeHours || 'Tue & Thu: 2:00 PM - 4:30 PM (Academic Hall Suite 402 / Zoom)');
-      setCoursesTaught(user.coursesTaught || [
-        {
-          id: 'cs401',
-          code: 'CS401',
-          name: 'Advanced Machine Learning & Neural Networks',
-          semester: 'Fall 2026',
-          studentsCount: 142,
-          ragStatus: 'Active Grounding',
-          syllabusIndexed: true
-        },
-        {
-          id: 'cs302',
-          code: 'CS302',
-          name: 'Data Structures & Algorithms',
-          semester: 'Fall 2026',
-          studentsCount: 190,
-          ragStatus: 'Active Grounding',
-          syllabusIndexed: true
-        },
-        {
-          id: 'cs605',
-          code: 'CS605',
-          name: 'Deep Generative Architectures & LLMs',
-          semester: 'Fall 2026',
-          studentsCount: 45,
-          ragStatus: 'Active Grounding',
-          syllabusIndexed: true
-        }
-      ]);
+      setOfficeHours(user.officeHours || 'Tue & Thu: 2:00 PM - 4:30 PM (Suite 402 / Zoom)');
+      setCoursesTaught(
+        user.coursesTaught || [
+          {
+            id: 'cs401',
+            code: 'CS401',
+            name: 'Advanced Machine Learning & Neural Networks',
+            semester: 'Fall 2026',
+            studentsCount: 142,
+            ragStatus: 'Active Grounding',
+            syllabusIndexed: true
+          },
+          {
+            id: 'cs302',
+            code: 'CS302',
+            name: 'Data Structures & Algorithms',
+            semester: 'Fall 2026',
+            studentsCount: 190,
+            ragStatus: 'Active Grounding',
+            syllabusIndexed: true
+          },
+          {
+            id: 'cs605',
+            code: 'CS605',
+            name: 'Deep Generative Architectures & LLMs',
+            semester: 'Fall 2026',
+            studentsCount: 45,
+            ragStatus: 'Active Grounding',
+            syllabusIndexed: true
+          }
+        ]
+      );
     } else {
-      // Student defaults
-      setStudentBio(user.bio || 'Junior CS student passionate about machine learning, deep learning, and collaborative algorithmic problem solving.');
-      setSkills(user.skills || ['Python', 'Machine Learning', 'Data Structures', 'PyTorch', 'Linear Algebra']);
-      setLearningGoals(user.learningGoals || [
-        'Score an A grade in CS401 Machine Learning',
-        'Master RAG vector retrieval pipelines and dense embeddings',
-        'Form an active weekly peer review study group'
-      ]);
-      setAvailability(user.availability || {
-        hoursPerWeek: 12,
-        preferredTimes: ['Weekday Evenings (6-9 PM)', 'Weekend Mornings (9 AM-12 PM)'],
-        groupSize: '3-4 students',
-        studyMode: 'Hybrid (Virtual + Campus)'
-      });
+      // Student defaults & active session sync
+      setStudentBio(
+        user.bio ||
+          'Junior CS student passionate about machine learning, deep learning, and collaborative algorithmic problem solving.'
+      );
+      setSkills(
+        user.skills || [
+          { tag: 'Python', confidence: 90 },
+          { tag: 'Machine Learning', confidence: 80 },
+          { tag: 'Data Structures', confidence: 85 },
+          { tag: 'PyTorch', confidence: 75 }
+        ]
+      );
+      setLearningGoals(
+        user.learningGoals ||
+          user.goals || [
+            'Score an A grade in CS401 Machine Learning',
+            'Master RAG vector retrieval pipelines and dense embeddings',
+            'Form an active weekly peer review study group'
+          ]
+      );
+
+      // Pre-select student's persisted lastScope
+      if (user.lastScope) {
+        setSelectedScope(user.lastScope);
+      }
+
+      // Pre-fill availability matrix
+      if (Array.isArray(user.availability) && user.availability.length > 0) {
+        setAvailabilityMatrix(user.availability);
+      } else {
+        // Default standard student study slots: Mon-Thu 6-9 PM (18..20) + Sat 9-12 PM (9..11)
+        setAvailabilityMatrix([
+          { day: 1, slots: [18, 19, 20] },
+          { day: 2, slots: [18, 19, 20] },
+          { day: 3, slots: [18, 19, 20] },
+          { day: 4, slots: [18, 19, 20] },
+          { day: 6, slots: [9, 10, 11] }
+        ]);
+      }
     }
   }, [user]);
 
   // -------------------------------------------------------------------------
-  // Student Actions
+  // General Profile Save
   // -------------------------------------------------------------------------
-  const handleAddSkill = (e) => {
-    e.preventDefault();
-    const trimmed = newSkillInput.trim();
-    if (!trimmed) return;
-    if (skills.includes(trimmed)) {
-      toast.error('Skill is already added.');
-      return;
+  const handleSaveGeneralProfile = async () => {
+    setIsSaving(true);
+    const updates = {
+      name: name.trim(),
+      bio: user.role === 'teacher' ? teacherBio : studentBio
+    };
+
+    const res = await updateProfile(updates);
+    setIsSaving(false);
+    if (res.success) {
+      toast.success('Profile details saved successfully!');
+    } else {
+      toast.error(res.error || 'Failed to update profile');
     }
-    setSkills([...skills, trimmed]);
-    setNewSkillInput('');
-    toast.success(`Added skill: "${trimmed}"`);
   };
 
-  const handleRemoveSkill = (skillToRemove) => {
-    setSkills(skills.filter((s) => s !== skillToRemove));
+  // -------------------------------------------------------------------------
+  // Academic Scope Save
+  // -------------------------------------------------------------------------
+  const handleSaveScope = async () => {
+    setIsSaving(true);
+    const res = await updateLastScope(selectedScope);
+    setIsSaving(false);
+    if (res.success) {
+      toast.success(
+        `Active scope set to ${selectedScope.courseName} (${selectedScope.examType.toUpperCase()})`
+      );
+    } else {
+      toast.error('Failed to save academic scope');
+    }
+  };
+
+  // -------------------------------------------------------------------------
+  // Weekly Availability Save
+  // -------------------------------------------------------------------------
+  const handleSaveAvailability = async () => {
+    setIsSaving(true);
+    const res = await updateAvailability(availabilityMatrix);
+    setIsSaving(false);
+    if (res.success) {
+      toast.success('Weekly availability schedule saved for cohort matching!');
+    } else {
+      toast.error('Failed to save availability schedule');
+    }
+  };
+
+  // -------------------------------------------------------------------------
+  // Skills & Learning Goals Save
+  // -------------------------------------------------------------------------
+  const handleSaveSkillsAndGoals = async () => {
+    setIsSaving(true);
+    const res = await updateProfile({
+      skills,
+      goals: learningGoals,
+      learningGoals
+    });
+    setIsSaving(false);
+    if (res.success) {
+      toast.success('Skills & academic goals updated!');
+    } else {
+      toast.error('Failed to save skills and goals');
+    }
   };
 
   const handleAddGoal = (e) => {
@@ -159,73 +252,40 @@ export default function ProfilePage() {
     }
     setLearningGoals([...learningGoals, trimmed]);
     setNewGoalInput('');
-    toast.success('New learning goal added!');
+    toast.success('Learning goal added!');
   };
 
   const handleRemoveGoal = (goalToRemove) => {
     setLearningGoals(learningGoals.filter((g) => g !== goalToRemove));
   };
 
-  const togglePreferredTime = (timeSlot) => {
-    const current = availability.preferredTimes || [];
-    if (current.includes(timeSlot)) {
-      setAvailability({
-        ...availability,
-        preferredTimes: current.filter((t) => t !== timeSlot)
-      });
-    } else {
-      setAvailability({
-        ...availability,
-        preferredTimes: [...current, timeSlot]
-      });
-    }
-  };
-
-  const handleSaveStudentProfile = () => {
-    setIsSavingStudent(true);
-    setTimeout(() => {
-      updateProfile({
-        bio: studentBio,
-        skills,
-        learningGoals,
-        availability,
-        matchingCycleStatus: 'Updated • Next group matching cycle runs in 2 days'
-      });
-      setIsSavingStudent(false);
-      // Acceptance criteria: "my profile updates and this data feeds into the group-matching algorithm on my next matching cycle"
-      toast.success('Profile saved! Data will feed into the group-matching algorithm on your next cycle.');
-    }, 600);
-  };
-
-
   // -------------------------------------------------------------------------
   // Teacher Actions
   // -------------------------------------------------------------------------
-  const handleSaveTeacherProfile = () => {
-    setIsSavingTeacher(true);
-    setTimeout(() => {
-      updateProfile({
-        bio: teacherBio,
-        department,
-        designation,
-        officeHours,
-        coursesTaught
-      });
-      setIsSavingTeacher(false);
-      // Acceptance criteria: "When I save, then the changes reflect on my public teacher profile."
-      toast.success('Teacher profile & department affiliation updated successfully.');
-    }, 600);
+  const handleSaveTeacherProfile = async () => {
+    setIsSaving(true);
+    const res = await updateProfile({
+      name: name.trim(),
+      bio: teacherBio,
+      department,
+      designation,
+      officeHours,
+      coursesTaught
+    });
+    setIsSaving(false);
+    if (res.success) {
+      toast.success('Teacher profile & department affiliation updated.');
+    } else {
+      toast.error(res.error || 'Failed to update teacher profile');
+    }
   };
 
-  // Calculate Student Profile Completion safely
+  // Calculate Student Profile Completion
   const calculateStudentCompletion = () => {
-    let score = 20; // base account
-    if (studentBio && typeof studentBio === 'string' && studentBio.trim()) score += 20;
-    if (Array.isArray(skills) && skills.length > 0) score += 20;
-    if (Array.isArray(learningGoals) && learningGoals.length > 0) score += 20;
-    const prefTimes = availability?.preferredTimes || [];
-    const hrs = availability?.hoursPerWeek || 0;
-    if (prefTimes.length > 0 && hrs > 0) score += 20;
+    let score = 25; // Base account
+    if (studentBio && studentBio.trim()) score += 25;
+    if (Array.isArray(skills) && skills.length > 0) score += 25;
+    if (Array.isArray(availabilityMatrix) && availabilityMatrix.length > 0) score += 25;
     return score;
   };
 
@@ -244,11 +304,6 @@ export default function ProfilePage() {
               <div className="h-4 w-72 bg-slate-100 rounded" />
               <div className="h-4 w-36 bg-slate-100 rounded" />
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="h-48 bg-white rounded-3xl border border-slate-200/90 p-6" />
-            <div className="h-48 bg-white rounded-3xl border border-slate-200/90 p-6" />
-            <div className="h-48 bg-white rounded-3xl border border-slate-200/90 p-6" />
           </div>
         </main>
         <Footer />
@@ -269,7 +324,7 @@ export default function ProfilePage() {
             </p>
             <Link
               href="/login"
-              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-xs"
+              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-hover transition-all"
             >
               <span>Go to Sign In</span>
               <ArrowRight className="w-4 h-4" />
@@ -283,6 +338,22 @@ export default function ProfilePage() {
 
   const isTeacher = user.role === 'teacher';
 
+  // Define tab navigation for Student vs Teacher
+  const studentTabs = [
+    { id: 'general', label: '1. General Profile', icon: User },
+    { id: 'scope', label: '2. Academic Scope', icon: Building2 },
+    { id: 'availability', label: '3. Weekly Availability', icon: Calendar },
+    { id: 'skills', label: '4. Skills & Learning Goals', icon: Layers }
+  ];
+
+  const teacherTabs = [
+    { id: 'general', label: '1. General Profile', icon: User },
+    { id: 'affiliation', label: '2. Academic Affiliation', icon: Building2 },
+    { id: 'courses', label: '3. Courses Taught', icon: BookOpen }
+  ];
+
+  const currentTabs = isTeacher ? teacherTabs : studentTabs;
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 selection:bg-brand selection:text-white">
       <Navbar />
@@ -290,7 +361,7 @@ export default function ProfilePage() {
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         
         {/* ================================================================= */}
-        {/* HEADER: Academic Profile Banner & Role Switcher Tip               */}
+        {/* TOP BANNER: User Identity Card                                    */}
         {/* ================================================================= */}
         <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -309,7 +380,10 @@ export default function ProfilePage() {
                     {user.initials || 'AC'}
                   </div>
                 )}
-                <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white" title="Active">
+                <span
+                  className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white"
+                  title="Active Session"
+                >
                   <Check className="w-3.5 h-3.5" />
                 </span>
               </div>
@@ -331,33 +405,36 @@ export default function ProfilePage() {
                 </div>
 
                 <p className="text-xs text-slate-500">
-                  {user.email} • {isTeacher ? department : (user.department || 'Computer Science')}
+                  {user.email} • {isTeacher ? department : (selectedScope.departmentName || 'Computer Science & Engineering')}
                 </p>
 
                 <p className="text-xs font-semibold text-brand">
                   {isTeacher
                     ? designation
-                    : `${user.semester || '6th Semester'} • Academic Good Standing`}
+                    : `${selectedScope.semesterName || 'Fall 2026'} • Active Academic Good Standing`}
                 </p>
               </div>
             </div>
 
-            {/* Role Context & Actions */}
-            <div className="flex flex-col items-start md:items-end space-y-2 shrink-0">
+            {/* Active View Badge */}
+            <div className="flex flex-col items-start md:items-end space-y-1 shrink-0">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Active View: <span className="text-brand font-black">{user.role.toUpperCase()} PROFILE</span>
+                Active Account Role
+              </span>
+              <span className="text-brand font-black text-sm uppercase">
+                {user.role} Workspace
               </span>
             </div>
 
           </div>
 
-          {/* Student Profile Completion Bar (Shows if incomplete) */}
+          {/* Student Profile Completion Bar */}
           {!isTeacher && (
             <div className="mt-6 pt-6 border-t border-slate-100 space-y-2">
               <div className="flex items-center justify-between text-xs font-bold">
                 <span className="flex items-center space-x-1.5 text-slate-700">
                   <Sparkles className="w-4 h-4 text-brand" />
-                  <span>Study Group Matching Readiness</span>
+                  <span>Study Cohort Matching Readiness</span>
                 </span>
                 <span className="text-brand font-mono">{completionPercent}% Complete</span>
               </div>
@@ -375,7 +452,7 @@ export default function ProfilePage() {
                 <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start space-x-2 mt-2">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
                   <p>
-                    <span className="font-bold">Profile Incomplete:</span> Complete your skills, learning goals, and weekly study availability below to unlock high-compatibility study group pairing and personalized exam suggestions!
+                    <span className="font-bold">Setup Required:</span> Complete your academic scope, weekly availability grid, and skills to enable automated bi-weekly study group matching.
                   </p>
                 </div>
               )}
@@ -384,532 +461,379 @@ export default function ProfilePage() {
         </div>
 
         {/* ================================================================= */}
-        {/* STUDENT VIEW: Skills, Learning Goals & Group-Matching Schedule    */}
+        {/* TAB NAVIGATION BAR (AUTH-02 Specification)                        */}
         {/* ================================================================= */}
-        {!isTeacher && (
-          <div className="space-y-8">
-            
-            {/* Matching Algorithm Information Box */}
-            <div className="bg-brand text-white rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center space-x-2 border-b border-slate-200/80 pb-3 overflow-x-auto">
+          {currentTabs.map((tab) => {
+            const TabIcon = tab.icon;
+            const isCurrent = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  isCurrent
+                    ? 'bg-brand text-white shadow-md shadow-brand/20'
+                    : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80'
+                }`}
+              >
+                <TabIcon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ================================================================= */}
+        {/* TAB CONTENT PANELS                                                */}
+        {/* ================================================================= */}
+
+        {/* ----------------------------------------------------------------- */}
+        {/* TAB 1: General Profile (Shared)                                   */}
+        {/* ----------------------------------------------------------------- */}
+        {activeTab === 'general' && (
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 space-y-6 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-emerald-300" />
-                  <h3 className="font-bold text-base">Intelligent Study Group Matching Engine</h3>
-                </div>
-                <p className="text-xs text-white/80 max-w-2xl leading-relaxed">
-                  Your skills, active learning goals, and weekly availability directly feed into our algorithmic matching pipeline. On every matching cycle, peers with complementary skill sets and overlapping study hours are grouped together.
-                </p>
-              </div>
-
-              <div className="px-3.5 py-2 rounded-2xl bg-white/10 border border-white/15 text-xs font-semibold shrink-0">
-                <span>Cycle: Next in 2 days</span>
-              </div>
-            </div>
-
-            {/* Grid: Skills (Left) & Learning Goals (Right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              
-              {/* 1. SKILLS SECTION */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand border border-brand/20 flex items-center justify-center">
-                      <Layers className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base text-slate-900">Academic Skills</h3>
-                      <p className="text-xs text-slate-500">Subjects & technologies you excel in</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                    {skills.length} Skills
-                  </span>
-                </div>
-
-                {/* Add Skill Input Form */}
-                <form onSubmit={handleAddSkill} className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={newSkillInput}
-                    onChange={(e) => setNewSkillInput(e.target.value)}
-                    placeholder="Add a skill (e.g. Python, Calculus, ML)..."
-                    className="flex-1 px-4 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-hover transition-all flex items-center space-x-1 cursor-pointer shrink-0"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add</span>
-                  </button>
-                </form>
-
-                {/* Skills Tags List vs Empty State */}
-                {skills.length === 0 ? (
-                  <EmptyState
-                    icon={FolderOpen}
-                    title="No skills added yet"
-                    description="Add your primary skills (e.g. Python, Calculus, ML) so peers with complementary questions can find you."
-                    actionLabel="Add Sample Skill"
-                    onAction={() => setSkills(['Python', 'Calculus', 'Data Structures'])}
-                    actionIcon={Plus}
-                    className="p-6 sm:p-8"
-                  />
-                ) : (
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {skills.map((skill, idx) => (
-                      <span
-                        key={idx}
-                        className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-50 text-slate-800 hover:text-brand border border-slate-200 hover:border-brand/30 text-xs font-semibold transition-all group"
-                      >
-                        <span>{skill}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSkill(skill)}
-                          className="text-slate-400 hover:text-rose-600 transition-colors"
-                          aria-label={`Remove ${skill}`}
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* 2. LEARNING GOALS SECTION */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand border border-brand/20 flex items-center justify-center">
-                      <Target className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base text-slate-900">Learning Goals</h3>
-                      <p className="text-xs text-slate-500">Target grades & topics you want to master</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                    {learningGoals.length} Goals
-                  </span>
-                </div>
-
-                {/* Add Goal Input Form */}
-                <form onSubmit={handleAddGoal} className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={newGoalInput}
-                    onChange={(e) => setNewGoalInput(e.target.value)}
-                    placeholder="Enter target goal (e.g. Master RAG vector pipelines)..."
-                    className="flex-1 px-4 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
-                  />
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-hover transition-all flex items-center space-x-1 cursor-pointer shrink-0"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add</span>
-                  </button>
-                </form>
-
-                {/* Goals List vs Empty State */}
-                {learningGoals.length === 0 ? (
-                  <EmptyState
-                    icon={Target}
-                    title="No learning goals set yet"
-                    description="Define what you want to achieve this semester so your study group matches are aligned on identical academic benchmarks."
-                    actionLabel="Add Sample Goal"
-                    onAction={() => setLearningGoals(['Score an A in CS401 Machine Learning', 'Master RAG architectures'])}
-                    actionIcon={Plus}
-                    className="p-6 sm:p-8"
-                  />
-                ) : (
-                  <div className="space-y-2 pt-2">
-                    {learningGoals.map((goal, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs text-slate-800 hover:border-brand/30 transition-all"
-                      >
-                        <div className="flex items-center space-x-2.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span className="font-medium leading-relaxed">{goal}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveGoal(goal)}
-                          className="text-slate-400 hover:text-rose-600 transition-colors p-1"
-                          aria-label={`Remove goal ${goal}`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-            </div>
-
-            {/* 3. AVAILABILITY & WEEKLY STUDY SCHEDULE */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand border border-brand/20 flex items-center justify-center">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base text-slate-900">Weekly Study Availability</h3>
-                    <p className="text-xs text-slate-500">Defines when you are free to meet for peer collaboration</p>
-                  </div>
-                </div>
-
-                <span className="text-xs font-bold text-brand bg-brand-50 px-3 py-1 rounded-full border border-brand/20">
-                  {availability.hoursPerWeek} Hours / Week
-                </span>
-              </div>
-
-              {/* Weekly Hours Slider */}
-              <div className="space-y-2 max-w-md">
-                <div className="flex justify-between text-xs font-semibold text-slate-700">
-                  <span>Study Commitment per Week:</span>
-                  <span className="font-bold text-brand">{availability.hoursPerWeek} hours</span>
-                </div>
-                <input
-                  type="range"
-                  min="2"
-                  max="30"
-                  step="2"
-                  value={availability.hoursPerWeek}
-                  onChange={(e) => setAvailability({ ...availability, hoursPerWeek: Number(e.target.value) })}
-                  className="w-full accent-[#003717] cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] text-slate-400">
-                  <span>2 hrs (Light)</span>
-                  <span>15 hrs (Moderate)</span>
-                  <span>30 hrs (Intensive)</span>
-                </div>
-              </div>
-
-              {/* Time Slots Checkboxes */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Preferred Meeting Time Slots (Select all that apply)
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {[
-                    'Morning (8:00 AM - 12:00 PM)',
-                    'Afternoon (1:00 PM - 5:00 PM)',
-                    'Weekday Evenings (6:00 PM - 9:00 PM)',
-                    'Night (9:00 PM - 11:30 PM)',
-                    'Weekend Mornings (9:00 AM - 12:00 PM)',
-                    'Weekend Afternoons (1:00 PM - 5:00 PM)'
-                  ].map((slot, idx) => {
-                    const isChecked = availability.preferredTimes?.includes(slot);
-                    return (
-                      <button
-                        type="button"
-                        key={idx}
-                        onClick={() => togglePreferredTime(slot)}
-                        className={`p-3 rounded-2xl text-left text-xs font-medium border transition-all flex items-center justify-between cursor-pointer ${
-                          isChecked
-                            ? 'bg-brand text-white border-brand shadow-xs'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        <span>{slot}</span>
-                        {isChecked && <Check className="w-3.5 h-3.5 text-white" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Study Mode & Group Size */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Preferred Group Size
-                  </label>
-                  <select
-                    value={availability.groupSize}
-                    onChange={(e) => setAvailability({ ...availability, groupSize: e.target.value })}
-                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand bg-white"
-                  >
-                    <option value="2-3 students">Small (2-3 students)</option>
-                    <option value="3-4 students">Standard (3-4 students)</option>
-                    <option value="5+ students">Large study group (5+ students)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Study Location / Mode
-                  </label>
-                  <select
-                    value={availability.studyMode}
-                    onChange={(e) => setAvailability({ ...availability, studyMode: e.target.value })}
-                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand bg-white"
-                  >
-                    <option value="Hybrid (Virtual + Campus)">Hybrid (Virtual + Campus)</option>
-                    <option value="100% Online (Zoom / Discord)">100% Online (Virtual)</option>
-                    <option value="In-Person Campus Library">In-Person (Campus Library)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Save Student Profile Button */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-slate-900">General Identity & Academic Biography</h3>
                 <p className="text-xs text-slate-500">
-                  Data feeds into study group matches every Monday and Thursday.
+                  Update your public display name, email, and introductory statement for peer groups and faculty.
                 </p>
-                <button
-                  type="button"
-                  id="save-student-profile-btn"
-                  onClick={handleSaveStudentProfile}
-                  disabled={isSavingStudent}
-                  className="px-6 py-3 rounded-xl bg-brand text-white text-xs font-bold shadow-md hover:bg-brand-hover active:scale-95 transition-all flex items-center space-x-2 cursor-pointer disabled:opacity-70"
-                >
-                  {isSavingStudent ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  <span>Save Profile & Update Group Matching</span>
-                </button>
               </div>
+
+              <button
+                type="button"
+                onClick={isTeacher ? handleSaveTeacherProfile : handleSaveGeneralProfile}
+                disabled={isSaving}
+                className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-hover shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>{isSaving ? 'Saving...' : 'Save General Info'}</span>
+              </button>
             </div>
 
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* TEACHER VIEW: Department, Bio & Courses Taught List               */}
-        {/* ================================================================= */}
-        {isTeacher && (
-          <div className="space-y-8">
-            
-            {/* Faculty Bio & Department Affiliation Card */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand border border-brand/20 flex items-center justify-center">
-                    <Building2 className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base text-slate-900">Faculty Credentials & Department Info</h3>
-                    <p className="text-xs text-slate-500">Public profile visible to enrolled students and academic deans</p>
-                  </div>
-                </div>
-
-                <span className="text-xs font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                  Institutional Scope of Authority
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Department Affiliation *
-                  </label>
-                  <input
-                    type="text"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="e.g. Department of Computer Science & Artificial Intelligence"
-                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand font-medium text-slate-800"
-                  />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Affects which academic division can index course materials.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Academic Designation / Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={designation}
-                    onChange={(e) => setDesignation(e.target.value)}
-                    placeholder="e.g. Associate Professor & AI Curriculum Chair"
-                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand font-medium text-slate-800"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Office Hours & Academic Location
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Full Display Name *
                 </label>
                 <input
                   type="text"
-                  value={officeHours}
-                  onChange={(e) => setOfficeHours(e.target.value)}
-                  placeholder="e.g. Tue & Thu: 2:00 PM - 4:30 PM (Suite 402 / Zoom)"
-                  className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand font-medium text-slate-800"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand shadow-2xs"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Academic Biography & Teaching Philosophy *
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  University Verified Email (Read-Only)
                 </label>
-                <textarea
-                  rows={4}
-                  value={teacherBio}
-                  onChange={(e) => setTeacherBio(e.target.value)}
-                  placeholder="Describe your research focus, curriculum standards, and pedagogical guidelines..."
-                  className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand font-medium text-slate-800 resize-none leading-relaxed"
+                <input
+                  type="email"
+                  value={user.email}
+                  disabled
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-500 cursor-not-allowed shadow-2xs"
                 />
-              </div>
-
-              {/* Save Teacher Profile Button */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-xs text-slate-500">
-                  Updates immediately synchronize across all student course portals.
-                </span>
-                <button
-                  type="button"
-                  id="save-teacher-profile-btn"
-                  onClick={handleSaveTeacherProfile}
-                  disabled={isSavingTeacher}
-                  className="px-6 py-3 rounded-xl bg-brand text-white text-xs font-bold shadow-md hover:bg-brand-hover active:scale-95 transition-all flex items-center space-x-2 cursor-pointer disabled:opacity-70"
-                >
-                  {isSavingTeacher ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  <span>Save Faculty Profile & Bio</span>
-                </button>
               </div>
             </div>
 
-            {/* Courses Currently Taught Section */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-sm space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-brand-50 text-brand border border-brand/20 flex items-center justify-center">
-                    <BookOpen className="w-4 h-4" />
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                Academic Statement & Bio *
+              </label>
+              <textarea
+                rows={4}
+                value={isTeacher ? teacherBio : studentBio}
+                onChange={(e) =>
+                  isTeacher ? setTeacherBio(e.target.value) : setStudentBio(e.target.value)
+                }
+                placeholder="Share your academic interests, focus areas, or study objectives..."
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-normal focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand shadow-2xs resize-none leading-relaxed"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ----------------------------------------------------------------- */}
+        {/* TAB 2 (Student): Academic Scope Selector                          */}
+        {/* ----------------------------------------------------------------- */}
+        {!isTeacher && activeTab === 'scope' && (
+          <div className="space-y-6">
+            <AcademicScopeSelector
+              value={selectedScope}
+              onChange={(newScope) => setSelectedScope(newScope)}
+              onSave={handleSaveScope}
+              isSaving={isSaving}
+            />
+          </div>
+        )}
+
+        {/* ----------------------------------------------------------------- */}
+        {/* TAB 3 (Student): Weekly Availability Grid                         */}
+        {/* ----------------------------------------------------------------- */}
+        {!isTeacher && activeTab === 'availability' && (
+          <div className="space-y-6">
+            <AvailabilityCalendar
+              value={availabilityMatrix}
+              onChange={(newMatrix) => setAvailabilityMatrix(newMatrix)}
+              onSave={handleSaveAvailability}
+              isSaving={isSaving}
+            />
+          </div>
+        )}
+
+        {/* ----------------------------------------------------------------- */}
+        {/* TAB 4 (Student): Skills & Learning Goals                          */}
+        {/* ----------------------------------------------------------------- */}
+        {!isTeacher && activeTab === 'skills' && (
+          <div className="space-y-8">
+            {/* Skills Chip Tag Input Card */}
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 space-y-6 shadow-sm">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="p-2 rounded-xl bg-brand-50 text-brand border border-brand/20">
+                      <Layers className="w-5 h-5" />
+                    </span>
+                    <h3 className="text-lg font-bold text-slate-900">Academic Skills & Strengths</h3>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-base text-slate-900">Courses Currently Taught</h3>
-                    <p className="text-xs text-slate-500">Active semester courses under your pedagogical authority</p>
-                  </div>
+                  <p className="text-xs text-slate-500">
+                    Add self-reported academic competencies and ratings to balance study group pairing.
+                  </p>
                 </div>
 
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand text-xs font-bold transition-all"
+                <button
+                  type="button"
+                  onClick={handleSaveSkillsAndGoals}
+                  disabled={isSaving}
+                  className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-hover shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  <span>Go to Workspace</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{isSaving ? 'Saving...' : 'Save Skills & Goals'}</span>
+                </button>
               </div>
 
-              {/* List of Courses Taught with Quick Links */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {coursesTaught.map((course) => (
-                  <div
-                    key={course.id}
-                    className="p-5 rounded-2xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-brand/30 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-brand text-white">
-                          {course.code}
-                        </span>
-                        <span className="text-[11px] font-semibold text-slate-500">
-                          {course.semester}
-                        </span>
+              <SkillTagInput
+                skills={skills}
+                onChange={(updatedSkills) => setSkills(updatedSkills)}
+              />
+            </div>
+
+            {/* Learning Goals Card */}
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 space-y-6 shadow-sm">
+              <div className="flex items-center space-x-2 pb-4 border-b border-slate-100">
+                <span className="p-2 rounded-xl bg-brand-50 text-brand border border-brand/20">
+                  <Target className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Current Semester Learning Goals</h3>
+                  <p className="text-xs text-slate-500">
+                    Define measurable milestones. The AI tutor tailors practice questions toward these targets.
+                  </p>
+                </div>
+              </div>
+
+              {/* Goal Input Form */}
+              <form onSubmit={handleAddGoal} className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={newGoalInput}
+                  onChange={(e) => setNewGoalInput(e.target.value)}
+                  placeholder="e.g. Master Backpropagation & SVD decomposition before midterm..."
+                  className="flex-1 px-4 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand shadow-2xs"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2.5 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-hover transition-all flex items-center space-x-1 cursor-pointer shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Goal</span>
+                </button>
+              </form>
+
+              {/* Learning Goals Checklist */}
+              <div className="space-y-2">
+                {learningGoals.length === 0 ? (
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-400">
+                    No learning goals listed. Add 2–3 specific targets for this term.
+                  </div>
+                ) : (
+                  learningGoals.map((goal, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/70 border border-slate-200/80 hover:bg-white transition-all text-xs text-slate-800"
+                    >
+                      <div className="flex items-center space-x-2.5">
+                        <CheckCircle2 className="w-4 h-4 text-brand shrink-0" />
+                        <span className="font-medium">{goal}</span>
                       </div>
-
-                      <h4 className="font-bold text-sm text-slate-900 leading-snug">
-                        {course.name}
-                      </h4>
-
-                      <div className="flex items-center space-x-3 text-xs text-slate-500 pt-1">
-                        <span className="flex items-center space-x-1">
-                          <Users className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{course.studentsCount} Students</span>
-                        </span>
-                        <span>•</span>
-                        <span className="flex items-center space-x-1 text-emerald-700 font-semibold">
-                          <Sparkles className="w-3 h-3 text-emerald-600" />
-                          <span>RAG Grounding</span>
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Quick Links to Manage Course */}
-                    <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between gap-2">
-                      <Link
-                        href="/dashboard"
-                        id={`manage-course-${course.id}`}
-                        className="flex-1 py-1.5 px-3 rounded-lg bg-white border border-slate-200 hover:border-brand hover:text-brand text-[11px] font-bold text-center text-slate-700 transition-colors shadow-2xs"
-                      >
-                        Manage Course
-                      </Link>
-
                       <button
                         type="button"
-                        onClick={() => setInspectingCourse(course)}
-                        className="py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-brand-50 hover:text-brand text-[11px] font-bold text-slate-600 transition-colors cursor-pointer"
-                        title="View RAG syllabus details"
+                        onClick={() => handleRemoveGoal(goal)}
+                        className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        title="Remove goal"
                       >
-                        Inspect
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ----------------------------------------------------------------- */}
+        {/* TEACHER TABS                                                      */}
+        {/* ----------------------------------------------------------------- */}
+        {isTeacher && activeTab === 'affiliation' && (
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 space-y-6 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-slate-900">Department Affiliation & Office Hours</h3>
+                <p className="text-xs text-slate-500">
+                  Institutional appointments and advisory consultation windows.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSaveTeacherProfile}
+                disabled={isSaving}
+                className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-hover shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>{isSaving ? 'Saving...' : 'Save Affiliation'}</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Department Affiliation *
+                </label>
+                <input
+                  type="text"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  placeholder="e.g. Department of Computer Science & Artificial Intelligence"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand shadow-2xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Designation / Academic Title *
+                </label>
+                <input
+                  type="text"
+                  value={designation}
+                  onChange={(e) => setDesignation(e.target.value)}
+                  placeholder="e.g. Associate Professor & AI Curriculum Chair"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand shadow-2xs"
+                />
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                Office Hours & Consultation Window
+              </label>
+              <input
+                type="text"
+                value={officeHours}
+                onChange={(e) => setOfficeHours(e.target.value)}
+                placeholder="e.g. Tue & Thu: 2:00 PM - 4:30 PM (Suite 402 / Zoom)"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand shadow-2xs"
+              />
+            </div>
+          </div>
+        )}
+
+        {isTeacher && activeTab === 'courses' && (
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 space-y-6 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-slate-900">Courses Under Pedagogical Authority</h3>
+                <p className="text-xs text-slate-500">
+                  Active semester course sections and RAG syllabus indexing status.
+                </p>
+              </div>
+
+              <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-brand-50 text-brand border border-brand/20">
+                {coursesTaught.length} Assigned Courses
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {coursesTaught.map((course) => (
+                <div
+                  key={course.id}
+                  className="rounded-2xl border border-slate-200 p-5 space-y-4 hover:border-brand transition-all shadow-2xs flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-1 rounded-lg bg-brand-50 text-brand font-mono font-bold text-xs">
+                        {course.code}
+                      </span>
+                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        {course.ragStatus || 'Active Grounding'}
+                      </span>
+                    </div>
+
+                    <h4 className="font-bold text-sm text-slate-900 leading-snug">
+                      {course.name}
+                    </h4>
+
+                    <p className="text-xs text-slate-500">
+                      {course.semester} • {course.studentsCount} Students Enrolled
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      Syllabus: Vector Indexed
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setInspectingCourse(course)}
+                      className="text-xs font-bold text-brand hover:underline inline-flex items-center space-x-1"
+                    >
+                      <span>Inspect</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
       </main>
 
-      <Footer />
-
-      {/* Modal: Course Inspection Details */}
-      <Modal
-        isOpen={!!inspectingCourse}
-        onClose={() => setInspectingCourse(null)}
-        title={inspectingCourse ? `${inspectingCourse.code} - Course Details` : 'Course Inspection'}
-        subtitle={`Semester: ${inspectingCourse?.semester || 'Fall 2026'}`}
-      >
-        {inspectingCourse && (
-          <div className="space-y-4 text-xs text-slate-700">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <h5 className="font-bold text-sm text-slate-900">{inspectingCourse.name}</h5>
-              <p className="text-slate-600 leading-relaxed">
-                Course authorized under {department}. Verified students enrolled: <span className="font-bold text-slate-900">{inspectingCourse.studentsCount}</span>.
-              </p>
+      {/* Inspect Course Modal */}
+      {inspectingCourse && (
+        <Modal
+          isOpen={!!inspectingCourse}
+          onClose={() => setInspectingCourse(null)}
+          title={`${inspectingCourse.code}: ${inspectingCourse.name}`}
+        >
+          <div className="space-y-4 text-xs">
+            <div className="p-3 bg-slate-50 rounded-xl space-y-1">
+              <p><strong>Semester:</strong> {inspectingCourse.semester}</p>
+              <p><strong>Active Students:</strong> {inspectingCourse.studentsCount} Enrolled</p>
+              <p><strong>Vector Grounding:</strong> {inspectingCourse.ragStatus || 'Active Grounding'}</p>
             </div>
-
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1">
-              <p className="font-bold flex items-center space-x-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>RAG AI Tutor Grounding Active</span>
-              </p>
-              <p className="text-[11px] text-emerald-800">
-                All student queries submitted to the CS AI Tutor for this course are constrained strictly to verified lecture slides and approved exam solutions.
-              </p>
-            </div>
-
-            <div className="pt-2 flex justify-end space-x-2">
-              <button
-                onClick={() => setInspectingCourse(null)}
-                className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-hover"
-              >
-                Close Preview
-              </button>
-            </div>
+            <p className="text-slate-600">
+              Course slide decks and syllabus reading assignments are embedded in the vector collection. Student queries are anchored to lecture slides before generating responses.
+            </p>
           </div>
-        )}
-      </Modal>
+        </Modal>
+      )}
 
+      <Footer />
     </div>
   );
 }

@@ -234,7 +234,7 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // Update user profile data & synchronize to persistence
-  updateProfile: (profileData) => {
+  updateProfile: async (profileData) => {
     const state = get();
     if (!state.user) return { success: false, error: 'Not authenticated' };
 
@@ -251,12 +251,105 @@ export const useAuthStore = create((set, get) => ({
           sessionStorage.setItem('icaw_auth_session', JSON.stringify(updatedUser));
         }
       } catch (err) {
-        console.error('Failed to sync updated profile:', err);
+        console.error('Failed to sync updated profile to storage:', err);
       }
     }
 
     set({ user: updatedUser });
+
+    // Sync to backend if reachable
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+      await fetch(`${backendUrl}/api/v1/users/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(profileData)
+      });
+    } catch (apiErr) {
+      // Non-blocking: state is already updated locally
+      console.warn('Backend profile sync note:', apiErr?.message || apiErr);
+    }
+
     return { success: true, user: updatedUser };
+  },
+
+  // Update weekly availability matrix (7x24 matrix)
+  updateAvailability: async (availability) => {
+    const state = get();
+    if (!state.user) return { success: false, error: 'Not authenticated' };
+
+    const updatedUser = {
+      ...state.user,
+      availability
+    };
+
+    if (typeof window !== 'undefined') {
+      try {
+        if (state.rememberMe) {
+          localStorage.setItem('icaw_auth_session', JSON.stringify(updatedUser));
+        } else {
+          sessionStorage.setItem('icaw_auth_session', JSON.stringify(updatedUser));
+        }
+      } catch (err) {
+        console.error('Failed to sync availability to storage:', err);
+      }
+    }
+
+    set({ user: updatedUser });
+
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+      await fetch(`${backendUrl}/api/v1/users/availability`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ availability })
+      });
+    } catch (apiErr) {
+      console.warn('Backend availability sync note:', apiErr?.message || apiErr);
+    }
+
+    return { success: true, availability };
+  },
+
+  // Update & persist active academic scope (lastScope)
+  updateLastScope: async (scopeData) => {
+    const state = get();
+    if (!state.user) return { success: false, error: 'Not authenticated' };
+
+    const updatedUser = {
+      ...state.user,
+      lastScope: scopeData
+    };
+
+    if (typeof window !== 'undefined') {
+      try {
+        if (state.rememberMe) {
+          localStorage.setItem('icaw_auth_session', JSON.stringify(updatedUser));
+        } else {
+          sessionStorage.setItem('icaw_auth_session', JSON.stringify(updatedUser));
+        }
+      } catch (err) {
+        console.error('Failed to sync lastScope to storage:', err);
+      }
+    }
+
+    set({ user: updatedUser });
+
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+      await fetch(`${backendUrl}/api/v1/users/scope`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(scopeData)
+      });
+    } catch (apiErr) {
+      console.warn('Backend lastScope sync note:', apiErr?.message || apiErr);
+    }
+
+    return { success: true, lastScope: scopeData };
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
