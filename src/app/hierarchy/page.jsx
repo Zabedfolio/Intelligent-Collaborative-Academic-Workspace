@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
-import FloatingRoleSwitcher from '../../components/FloatingRoleSwitcher';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { academicHierarchy } from '../../data/academicData';
 import { Building2, GraduationCap, Calendar, BookOpen, ArrowRight, ShieldCheck } from 'lucide-react';
@@ -128,7 +127,6 @@ export default function HierarchyPage() {
         })}
       </main>
 
-      <FloatingRoleSwitcher />
       <Footer />
     </div>
   );

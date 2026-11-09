@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
-import FloatingRoleSwitcher from '../../components/FloatingRoleSwitcher';
 import {
   GraduationCap,
   Sparkles,
@@ -660,7 +659,6 @@ export default function TrainingPage() {
       </main>
 
       <Footer />
-      <FloatingRoleSwitcher />
     </div>
   );
 }

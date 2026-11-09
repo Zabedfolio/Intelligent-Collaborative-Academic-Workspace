@@ -17,10 +17,7 @@ import {
   EyeOff,
   ArrowRight,
   ShieldAlert,
-  GraduationCap,
-  UserCheck,
-  CheckCircle2,
-  Sparkles
+  CheckCircle2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -75,21 +72,6 @@ export default function LoginPage() {
     }
   };
 
-  // Quick fill helper for reviewer/demo testing
-  const fillDemoAccount = (role) => {
-    if (role === 'student') {
-      setValue('email', 'student@university.edu', { shouldValidate: true });
-      setValue('password', 'Password123!', { shouldValidate: true });
-      setServerError('');
-      toast.success('Loaded Student demo credentials');
-    } else if (role === 'teacher') {
-      setValue('email', 'teacher@university.edu', { shouldValidate: true });
-      setValue('password', 'Password123!', { shouldValidate: true });
-      setServerError('');
-      toast.success('Loaded Teacher demo credentials');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-brand selection:text-white">
       <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -119,34 +101,6 @@ export default function LoginPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 sm:px-10 rounded-3xl shadow-xl shadow-slate-900/5 border border-slate-200/80 space-y-6">
           
-          {/* Quick Demo Fill Chips */}
-          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/70 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-brand" />
-                Quick Demo Credentials:
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('student')}
-                className="flex items-center justify-center space-x-1.5 py-1.5 px-2.5 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:border-brand hover:text-brand hover:bg-brand-50/50 transition-all shadow-xs"
-              >
-                <GraduationCap className="w-3.5 h-3.5 text-brand" />
-                <span>Student Demo</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemoAccount('teacher')}
-                className="flex items-center justify-center space-x-1.5 py-1.5 px-2.5 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:border-amber-700 hover:text-amber-800 hover:bg-amber-50/50 transition-all shadow-xs"
-              >
-                <UserCheck className="w-3.5 h-3.5 text-amber-600" />
-                <span>Teacher Demo</span>
-              </button>
-            </div>
-          </div>
-
           {/* Server Error Alert Banner */}
           {serverError && (
             <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-start space-x-2.5 animate-in fade-in duration-150">

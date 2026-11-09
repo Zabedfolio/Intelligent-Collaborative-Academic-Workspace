@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
-import FloatingRoleSwitcher from '../../components/FloatingRoleSwitcher';
 import Modal from '../../components/common/Modal';
 import EmptyState from '../../components/common/EmptyState';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -198,36 +197,6 @@ export default function ProfilePage() {
     }, 600);
   };
 
-  // Simulate incomplete profile to test empty states and prompts
-  const handleSimulateIncompleteProfile = () => {
-    setSkills([]);
-    setLearningGoals([]);
-    setAvailability({
-      hoursPerWeek: 0,
-      preferredTimes: [],
-      groupSize: '',
-      studyMode: ''
-    });
-    setStudentBio('');
-    toast('Profile cleared to demonstrate empty states & prompts', { icon: 'ℹ️' });
-  };
-
-  const handleRestoreDemoProfile = () => {
-    setSkills(['Python', 'Machine Learning', 'Data Structures', 'PyTorch', 'Linear Algebra']);
-    setLearningGoals([
-      'Score an A grade in CS401 Machine Learning',
-      'Master RAG vector retrieval pipelines and dense embeddings',
-      'Form an active weekly peer review study group'
-    ]);
-    setAvailability({
-      hoursPerWeek: 12,
-      preferredTimes: ['Weekday Evenings (6-9 PM)', 'Weekend Mornings (9 AM-12 PM)'],
-      groupSize: '3-4 students',
-      studyMode: 'Hybrid (Virtual + Campus)'
-    });
-    setStudentBio('Junior CS student passionate about machine learning, deep learning, and collaborative algorithmic problem solving.');
-    toast.success('Restored populated student demo profile');
-  };
 
   // -------------------------------------------------------------------------
   // Teacher Actions
@@ -378,24 +347,6 @@ export default function ProfilePage() {
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 Active View: <span className="text-brand font-black">{user.role.toUpperCase()} PROFILE</span>
               </span>
-
-              {!isTeacher && (
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={handleSimulateIncompleteProfile}
-                    className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-all cursor-pointer"
-                    title="Clear skills and availability to test incomplete prompts"
-                  >
-                    Test Empty State
-                  </button>
-                  <button
-                    onClick={handleRestoreDemoProfile}
-                    className="px-3 py-1.5 rounded-xl bg-brand-50 border border-brand/20 text-brand text-xs font-semibold hover:bg-brand-100 transition-all cursor-pointer"
-                  >
-                    Load Demo Data
-                  </button>
-                </div>
-              )}
             </div>
 
           </div>
@@ -920,9 +871,6 @@ export default function ProfilePage() {
       </main>
 
       <Footer />
-
-      {/* Floating Role Switcher Widget */}
-      <FloatingRoleSwitcher />
 
       {/* Modal: Course Inspection Details */}
       <Modal

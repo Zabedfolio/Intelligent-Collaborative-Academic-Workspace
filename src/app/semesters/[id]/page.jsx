@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import Navbar from '../../../components/common/Navbar';
 import Footer from '../../../components/common/Footer';
-import FloatingRoleSwitcher from '../../../components/FloatingRoleSwitcher';
 import Breadcrumb from '../../../components/common/Breadcrumb';
 import { academicHierarchy } from '../../../data/academicData';
 import {
@@ -203,7 +202,6 @@ export default function SemesterDetailPage() {
 
       </main>
 
-      <FloatingRoleSwitcher />
       <Footer />
     </div>
   );

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Sidebar from '../../components/dashboard/Sidebar';
 import Footer from '../../components/common/Footer';
-import FloatingRoleSwitcher from '../../components/FloatingRoleSwitcher';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import FileUploadDropzone from '../../components/common/FileUploadDropzone';
@@ -463,9 +462,6 @@ export default function DashboardPage() {
         {/* Compact Footer */}
         <Footer variant="compact" />
       </div>
-
-      {/* Floating Role Switcher */}
-      <FloatingRoleSwitcher />
 
       {/* ================================================================= */}
       {/* 3. KEY ACTION MODAL: View Resource                                */}

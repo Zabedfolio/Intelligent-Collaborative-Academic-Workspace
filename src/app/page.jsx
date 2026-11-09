@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
-import FloatingRoleSwitcher from '../components/FloatingRoleSwitcher';
 import { useAuthStore } from '../store/useAuthStore';
 import {
   Sparkles,
@@ -1065,9 +1064,6 @@ export default function Home() {
 
       {/* Global Academic Footer */}
       <Footer />
-
-      {/* Draggable Role Switcher Widget with Visitor Mode */}
-      <FloatingRoleSwitcher />
     </div>
   );
 }

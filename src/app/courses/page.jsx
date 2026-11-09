@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
-import FloatingRoleSwitcher from '../../components/FloatingRoleSwitcher';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { academicHierarchy } from '../../data/academicData';
 import { BookOpen, Sparkles, ArrowRight, User, Calendar, Layers } from 'lucide-react';
@@ -97,7 +96,6 @@ export default function CoursesCatalogPage() {
         </div>
       </main>
 
-      <FloatingRoleSwitcher />
       <Footer />
     </div>
   );
