@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '../../lib/validations/auth';
 import { useAuthStore } from '../../store/useAuthStore';
 import Footer from '../../components/common/Footer';
+import OAuthButton from '../../components/auth/OAuthButton';
 import {
   Mail,
   Lock,
@@ -155,6 +156,9 @@ export default function LoginPage() {
               </div>
             </div>
           )}
+
+          {/* OAuth Single Sign-On Button */}
+          <OAuthButton mode="signin" callbackUrl="/dashboard" />
 
           {/* Login Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

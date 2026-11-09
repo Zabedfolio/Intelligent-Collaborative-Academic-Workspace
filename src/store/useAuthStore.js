@@ -1,6 +1,16 @@
 import { create } from 'zustand';
 import { authClient } from '../lib/auth-client';
 
+// Helper to keep cookie synchronized for Next.js SSR middleware
+const setSessionCookie = (active) => {
+  if (typeof document === 'undefined') return;
+  if (active) {
+    document.cookie = 'icaw_auth_session=1; path=/; max-age=604800; SameSite=Lax';
+  } else {
+    document.cookie = 'icaw_auth_session=; path=/; max-age=0; SameSite=Lax';
+  }
+};
+
 // Pre-seeded accounts for development & evaluation
 const DEFAULT_ACCOUNTS = [
   {
@@ -186,6 +196,7 @@ export const useAuthStore = create((set, get) => ({
         };
 
         if (typeof window !== 'undefined') {
+          setSessionCookie(true);
           if (rememberMe) {
             localStorage.setItem('icaw_auth_session', JSON.stringify(sessionUser));
             sessionStorage.removeItem('icaw_auth_session');
@@ -235,6 +246,7 @@ export const useAuthStore = create((set, get) => ({
     };
 
     if (typeof window !== 'undefined') {
+      setSessionCookie(true);
       if (rememberMe) {
         localStorage.setItem('icaw_auth_session', JSON.stringify(sessionUser));
         sessionStorage.removeItem('icaw_auth_session');
@@ -298,6 +310,7 @@ export const useAuthStore = create((set, get) => ({
         };
 
         if (typeof window !== 'undefined') {
+          setSessionCookie(true);
           sessionStorage.setItem('icaw_auth_session', JSON.stringify(sessionUser));
         }
 
@@ -370,6 +383,7 @@ export const useAuthStore = create((set, get) => ({
     };
 
     if (typeof window !== 'undefined') {
+      setSessionCookie(true);
       sessionStorage.setItem('icaw_auth_session', JSON.stringify(sessionUser));
     }
 
@@ -390,6 +404,7 @@ export const useAuthStore = create((set, get) => ({
   setRole: (role) => {
     if (role === 'logged_out') {
       if (typeof window !== 'undefined') {
+        setSessionCookie(false);
         localStorage.removeItem('icaw_auth_session');
         sessionStorage.removeItem('icaw_auth_session');
       }
@@ -419,6 +434,7 @@ export const useAuthStore = create((set, get) => ({
     }
 
     if (typeof window !== 'undefined') {
+      setSessionCookie(true);
       localStorage.setItem('icaw_auth_session', JSON.stringify(updatedUser));
     }
 
@@ -472,6 +488,7 @@ export const useAuthStore = create((set, get) => ({
       console.warn('Better Auth signOut warning:', err?.message || err);
     }
     if (typeof window !== 'undefined') {
+      setSessionCookie(false);
       localStorage.removeItem('icaw_auth_session');
       sessionStorage.removeItem('icaw_auth_session');
     }

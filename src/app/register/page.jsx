@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, passwordRules } from '../../lib/validations/auth';
 import { useAuthStore } from '../../store/useAuthStore';
 import Footer from '../../components/common/Footer';
+import OAuthButton from '../../components/auth/OAuthButton';
 import {
   User,
   Mail,
@@ -209,7 +210,11 @@ export default function RegisterPage() {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div className="space-y-5">
+              {/* OAuth Single Sign-On Button */}
+              <OAuthButton mode="signup" callbackUrl="/dashboard" />
+
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               
               {/* Server Duplicate Error Alert */}
               {serverError && (
@@ -513,7 +518,8 @@ export default function RegisterPage() {
                   </>
                 )}
               </button>
-            </form>
+              </form>
+            </div>
           )}
 
           {/* Footer Navigation */}
