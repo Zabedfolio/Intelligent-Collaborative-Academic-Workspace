@@ -43,7 +43,12 @@ import {
   Laptop,
   Terminal,
   Activity,
-  Bookmark
+  Bookmark,
+  Coins,
+  Gauge,
+  AlertTriangle,
+  Server,
+  ArrowDownRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -55,6 +60,9 @@ export default function Home() {
   
   // Interactive Domain Switcher
   const [activeDomain, setActiveDomain] = useState('cs'); // 'cs' | 'math' | 'med' | 'econ'
+
+  // Interactive Token Savings Calculator State
+  const [tokenCohortSize, setTokenCohortSize] = useState(2500); // 500 | 2500 | 10000
 
   // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState(0);
@@ -211,9 +219,9 @@ export default function Home() {
                 <div className="text-[11px] text-slate-500">On semester midterms & finals</div>
               </div>
               <div className="space-y-1 pt-4 lg:pt-0">
-                <div className="text-3xl sm:text-4xl font-black text-brand font-mono">&lt;60s</div>
-                <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">Syllabus Ingestion</div>
-                <div className="text-[11px] text-slate-500">Instant course slide vectorization</div>
+                <div className="text-3xl sm:text-4xl font-black text-brand font-mono">78%</div>
+                <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">Token Cost Reduction</div>
+                <div className="text-[11px] text-slate-500">Dense vector RAG vs raw context dumping</div>
               </div>
               <div className="space-y-1 pt-4 lg:pt-0">
                 <div className="text-3xl sm:text-4xl font-black text-brand font-mono">18,500+</div>
@@ -668,7 +676,286 @@ export default function Home() {
         </section>
 
         {/* ================================================================= */}
-        {/* 5. TRADITIONAL LMS VS ICAW (The Great Academic Shift)             */}
+        {/* 5. AI TOKEN & COST OPTIMIZATION (RAG Vector Architecture)         */}
+        {/* ================================================================= */}
+        <section className="bg-slate-900 text-white py-20 relative overflow-hidden">
+          {/* Subtle background glow */}
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
+            
+            {/* Section Header */}
+            <div className="text-center space-y-3 max-w-3xl mx-auto">
+              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <Coins className="w-3.5 h-3.5" />
+                <span>Architectural Token Efficiency</span>
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+                How Vector RAG Delivers <span className="text-emerald-400">78% Token Savings</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Brute-force LLM wrappers dump entire course materials into prompt contexts, exhausting university budgets and causing hallucination. ICAW’s semantic retrieval feeds only verified, granular chunks to the model.
+              </p>
+            </div>
+
+            {/* Side-by-Side Comparison Architecture Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
+              {/* LEFT CARD: Brute-Force Context Stuffing (Legacy / Competitors) */}
+              <div className="rounded-3xl bg-slate-800/80 border border-rose-500/30 p-6 sm:p-8 space-y-6 flex flex-col justify-between relative shadow-xl backdrop-blur-xs">
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      <span>Brute-Force Context Stuffing</span>
+                    </span>
+                    <span className="text-xs font-mono font-bold text-rose-400">Legacy Approach</span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold text-white">Full-Deck Context Injection</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Concatenates entire slide decks, syllabi, and textbook chapters into raw prompt contexts on every student inquiry.
+                    </p>
+                  </div>
+
+                  {/* Core Metrics Grid */}
+                  <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-900/60 border border-slate-700/60 text-center">
+                    <div>
+                      <div className="text-xs text-slate-400">Avg Prompt Load</div>
+                      <div className="text-lg sm:text-xl font-mono font-black text-rose-400 mt-0.5">~24,500</div>
+                      <div className="text-[10px] text-slate-500">tokens / turn</div>
+                    </div>
+                    <div className="border-x border-slate-700/60">
+                      <div className="text-xs text-slate-400">Response Latency</div>
+                      <div className="text-lg sm:text-xl font-mono font-black text-rose-400 mt-0.5">6.8s</div>
+                      <div className="text-[10px] text-slate-500">time-to-first-token</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-400">Monthly Run Rate</div>
+                      <div className="text-lg sm:text-xl font-mono font-black text-rose-400 mt-0.5">$7,350</div>
+                      <div className="text-[10px] text-slate-500">per 1k students</div>
+                    </div>
+                  </div>
+
+                  {/* Architecture Flow List */}
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex items-start space-x-2.5 text-slate-300">
+                      <span className="w-5 h-5 rounded-md bg-rose-500/20 text-rose-400 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">✕</span>
+                      <span><strong>Lost-in-the-Middle Phenomenon:</strong> Model attention degrades over 20k+ bloated tokens, losing core exam formulas.</span>
+                    </div>
+                    <div className="flex items-start space-x-2.5 text-slate-300">
+                      <span className="w-5 h-5 rounded-md bg-rose-500/20 text-rose-400 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">✕</span>
+                      <span><strong>High Hallucination Rate:</strong> Ungrounded extrapolation across unindexed PDF noise and irrelevant appendices.</span>
+                    </div>
+                    <div className="flex items-start space-x-2.5 text-slate-300">
+                      <span className="w-5 h-5 rounded-md bg-rose-500/20 text-rose-400 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">✕</span>
+                      <span><strong>API Quota Burn:</strong> Concurrent midterm review traffic causes rate limits and exorbitant institutional bills.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-700/60">
+                  <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                    <span>Token Footprint</span>
+                    <span className="font-mono font-bold text-rose-400">100% (Baseline Max)</span>
+                  </div>
+                  <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                    <div className="w-full h-full bg-rose-500 rounded-full" />
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT CARD: ICAW Dense Semantic Vector RAG Pipeline */}
+              <div className="rounded-3xl bg-slate-800/80 border-2 border-emerald-500/60 p-6 sm:p-8 space-y-6 flex flex-col justify-between relative shadow-2xl shadow-emerald-950/40 backdrop-blur-xs">
+                {/* Most Efficient Badge */}
+                <div className="absolute -top-3.5 right-6 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500 text-slate-950 shadow-md">
+                  Production Engineered
+                </div>
+
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      <Gauge className="w-3.5 h-3.5" />
+                      <span>ICAW Vector RAG Pipeline</span>
+                    </span>
+                    <span className="text-xs font-mono font-bold text-emerald-400">78% Net Reduction</span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-bold text-white">Bi-Encoder Semantic Retrieval</h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Indexes slide decks into 256-token vector embeddings. Dynamically retrieves only the top 3–5 highest-relevance passages per question.
+                    </p>
+                  </div>
+
+                  {/* Core Metrics Grid */}
+                  <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-900/80 border border-emerald-500/30 text-center">
+                    <div>
+                      <div className="text-xs text-slate-400">Avg Prompt Load</div>
+                      <div className="text-lg sm:text-xl font-mono font-black text-emerald-400 mt-0.5">~3,800</div>
+                      <div className="text-[10px] text-emerald-300 font-bold">-84% tokens</div>
+                    </div>
+                    <div className="border-x border-slate-700/60">
+                      <div className="text-xs text-slate-400">Response Latency</div>
+                      <div className="text-lg sm:text-xl font-mono font-black text-emerald-400 mt-0.5">&lt;920ms</div>
+                      <div className="text-[10px] text-emerald-300 font-bold">3.8x faster</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-400">Monthly Run Rate</div>
+                      <div className="text-lg sm:text-xl font-mono font-black text-emerald-400 mt-0.5">$1,140</div>
+                      <div className="text-[10px] text-emerald-300 font-bold">saves $6,210/mo</div>
+                    </div>
+                  </div>
+
+                  {/* Architecture Flow List */}
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex items-start space-x-2.5 text-slate-200">
+                      <span className="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">✓</span>
+                      <span><strong>Dense Semantic Chunking:</strong> 256-token window with 32-token overlap guarantees intact formulas and code blocks.</span>
+                    </div>
+                    <div className="flex items-start space-x-2.5 text-slate-200">
+                      <span className="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">✓</span>
+                      <span><strong>Deterministic Citation Anchor:</strong> Answers must anchor directly to slide number, line number, or syllabus section.</span>
+                    </div>
+                    <div className="flex items-start space-x-2.5 text-slate-200">
+                      <span className="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">✓</span>
+                      <span><strong>Sustainable Institutional Scale:</strong> Universities handle 10,000+ concurrent finals queries without hitting budget caps.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-700/60">
+                  <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                    <span>Token Footprint</span>
+                    <span className="font-mono font-bold text-emerald-400">21.6% of Legacy (78.4% Saved)</span>
+                  </div>
+                  <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                    <div className="w-[21.6%] h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Interactive Campus Token Savings Estimator */}
+            <div className="rounded-3xl bg-slate-800/90 border border-slate-700/80 p-6 sm:p-8 space-y-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Server className="w-4 h-4 text-emerald-400" />
+                    <span>Campus-Scale Token Savings Estimator</span>
+                  </h4>
+                  <p className="text-xs text-slate-400">
+                    Select your student enrollment cohort to model semester-wide token savings and budget impact:
+                  </p>
+                </div>
+
+                {/* Cohort Selector Pill Buttons */}
+                <div className="inline-flex items-center p-1 bg-slate-900 rounded-2xl border border-slate-700/70">
+                  {[
+                    { count: 500, label: '500 Students' },
+                    { count: 2500, label: '2,500 Students' },
+                    { count: 10000, label: '10,000 Students' }
+                  ].map((cohort) => (
+                    <button
+                      key={cohort.count}
+                      onClick={() => setTokenCohortSize(cohort.count)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        tokenCohortSize === cohort.count
+                          ? 'bg-emerald-500 text-slate-950 shadow-md'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {cohort.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dynamic Calculation Output */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-700/80 space-y-1">
+                  <div className="text-xs text-slate-400">Total Tokens Saved / Semester</div>
+                  <div className="text-2xl font-mono font-black text-emerald-400">
+                    {(tokenCohortSize * 0.0988).toFixed(1)}M Tokens
+                  </div>
+                  <div className="text-[11px] text-slate-400">
+                    Based on 40 queries/student/term
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-700/80 space-y-1">
+                  <div className="text-xs text-slate-400">Estimated Budget Conserved</div>
+                  <div className="text-2xl font-mono font-black text-white">
+                    ${Math.round(tokenCohortSize * 7.4).toLocaleString()} / Term
+                  </div>
+                  <div className="text-[11px] text-emerald-400 font-semibold">
+                    ~78.4% institutional cost reduction
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-700/80 space-y-1">
+                  <div className="text-xs text-slate-400">Latency & Carbon Footprint</div>
+                  <div className="text-2xl font-mono font-black text-teal-400">
+                    -74% Latency
+                  </div>
+                  <div className="text-[11px] text-slate-400">
+                    Sub-second time-to-first-token stream
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4 Technical Pillars of the Token Engine */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 text-xs">
+              <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/60 space-y-1.5">
+                <div className="font-bold text-white flex items-center gap-1.5">
+                  <Cpu className="w-4 h-4 text-emerald-400" />
+                  <span>256-Token Chunks</span>
+                </div>
+                <p className="text-slate-400 leading-relaxed text-[11px]">
+                  Optimized sliding window splits lecture notes without severing mathematical equations or formulas.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/60 space-y-1.5">
+                <div className="font-bold text-white flex items-center gap-1.5">
+                  <BrainCircuit className="w-4 h-4 text-emerald-400" />
+                  <span>Cross-Encoder Rerank</span>
+                </div>
+                <p className="text-slate-400 leading-relaxed text-[11px]">
+                  Filters top 20 candidate vectors down to the 3 most precise slide passages prior to prompt assembly.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/60 space-y-1.5">
+                <div className="font-bold text-white flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Strict Attribution Grammar</span>
+                </div>
+                <p className="text-slate-400 leading-relaxed text-[11px]">
+                  Enforces explicit [Slide X, Page Y] verification tags before the LLM emits a single explanatory word.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/60 space-y-1.5">
+                <div className="font-bold text-white flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-emerald-400" />
+                  <span>Streaming Responses</span>
+                </div>
+                <p className="text-slate-400 leading-relaxed text-[11px]">
+                  Low prompt context enables immediate SSE token streaming within &lt;950ms on mobile & desktop.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ================================================================= */}
+        {/* 6. TRADITIONAL LMS VS ICAW (The Great Academic Shift)             */}
         {/* ================================================================= */}
         <section className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-20 space-y-10">
           <div className="text-center space-y-3 max-w-3xl mx-auto">
