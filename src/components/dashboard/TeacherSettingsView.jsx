@@ -230,3 +230,4 @@ export default function TeacherSettingsView({ user }) {
     </div>
   );
 }
+

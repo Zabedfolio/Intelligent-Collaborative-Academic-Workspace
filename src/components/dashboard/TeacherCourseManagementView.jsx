@@ -214,3 +214,4 @@ export default function TeacherCourseManagementView({ user, onNavigate }) {
     </div>
   );
 }
+
