@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   FolderKanban,
   BookOpen,
@@ -15,6 +16,8 @@ import {
   Calendar
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import CourseFormModal from '../courses/CourseFormModal';
+import { academicHierarchy } from '../../data/academicData';
 
 export default function TeacherCourseManagementView({ user, onNavigate }) {
   const [courses, setCourses] = useState([
@@ -57,6 +60,38 @@ export default function TeacherCourseManagementView({ user, onNavigate }) {
   ]);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSavingCourse, setIsSavingCourse] = useState(false);
+
+  const handleSaveCourse = async (newCourseData) => {
+    setIsSavingCourse(true);
+    try {
+      await new Promise((r) => setTimeout(r, 600));
+      const dept = academicHierarchy.departments.find((d) => d.id === newCourseData.departmentId);
+      const sem = academicHierarchy.semesters.find((s) => s.id === newCourseData.semesterId);
+
+      const created = {
+        id: newCourseData.courseCode.toLowerCase().replace(/[^a-z0-9]/g, ''),
+        code: newCourseData.courseCode.toUpperCase(),
+        name: newCourseData.title,
+        department: dept ? dept.name : 'Computer Science & AI',
+        semester: sem ? sem.name : 'Fall 2026',
+        studentsCount: 0,
+        materialsCount: 0,
+        ragStatus: 'Active Grounding',
+        syllabusIndexed: true,
+        lastIngested: 'Just now'
+      };
+
+      setCourses((prev) => [created, ...prev]);
+      setIsAddModalOpen(false);
+      toast.success(`Course ${created.code} created successfully!`);
+    } catch (err) {
+      toast.error('Failed to create course.');
+    } finally {
+      setIsSavingCourse(false);
+    }
+  };
 
   const filteredCourses = courses.filter(
     (c) =>
@@ -83,10 +118,10 @@ export default function TeacherCourseManagementView({ user, onNavigate }) {
 
         <button
           type="button"
-          onClick={() => toast.success('Add New Course Section modal opened')}
-          className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-hover shadow-sm transition-all cursor-pointer shrink-0"
+          onClick={() => setIsAddModalOpen(true)}
+          className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-hover shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 shrink-0" />
           <span>Add Course Section</span>
         </button>
       </div>
@@ -193,23 +228,29 @@ export default function TeacherCourseManagementView({ user, onNavigate }) {
                   <span>Upload Slides</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onNavigate) onNavigate('ai-config');
-                    else toast.success(`Opening AI Config for ${course.code}`);
-                  }}
-                  className="flex items-center justify-center space-x-1.5 py-2 px-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                <Link
+                  href={`/courses/${course.id}`}
+                  className="flex items-center justify-center space-x-1.5 py-2 px-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0"
                 >
-                  <Sliders className="w-3.5 h-3.5" />
+                  <Sliders className="w-3.5 h-3.5 shrink-0" />
                   <span>AI Config</span>
-                </button>
+                </Link>
               </div>
 
             </div>
           ))}
         </div>
       </div>
+
+      {/* Add Course Section Modal */}
+      <CourseFormModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        departments={academicHierarchy.departments}
+        semesters={academicHierarchy.semesters}
+        onSave={handleSaveCourse}
+        isSaving={isSavingCourse}
+      />
 
     </div>
   );
