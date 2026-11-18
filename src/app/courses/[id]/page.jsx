@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import Navbar from '../../../components/common/Navbar';
 import Footer from '../../../components/common/Footer';
-import FloatingRoleSwitcher from '../../../components/FloatingRoleSwitcher';
 import Breadcrumb from '../../../components/common/Breadcrumb';
 import { academicHierarchy } from '../../../data/academicData';
 import {
@@ -23,9 +22,13 @@ import {
   CheckCircle2,
   Share2,
   BrainCircuit,
-  Award
+  Award,
+  Sliders,
+  Users
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import CourseAISettingsCard from '../../../components/courses/CourseAISettingsCard';
+import StudentEnrollmentTable from '../../../components/courses/StudentEnrollmentTable';
 
 export default function CourseDetailPage() {
   const params = useParams();
@@ -54,7 +57,71 @@ export default function CourseDetailPage() {
   );
 
   // Active sub-tab
-  const [activeTab, setActiveTab] = useState('resources'); // 'resources' | 'topics' | 'exams'
+  const [activeTab, setActiveTab] = useState('resources'); // 'resources' | 'topics' | 'exams' | 'control-room'
+  
+  // Dynamic AI Governance & Roster State
+  const [courseAIConfig, setCourseAIConfig] = useState(
+    course.aiConfig || {
+      strictCourseMode: true,
+      cumulativeFinalScope: false,
+      maxContextTokens: 2500
+    }
+  );
+  const [enrolledStudents, setEnrolledStudents] = useState([
+    { id: 'usr-s1', name: 'Alex Johnson', email: 'alex.j@iiuc.ac.bd', role: 'student', enrolledAt: 'Sep 01, 2026' },
+    { id: 'usr-s2', name: 'Fatima Al-Mansoor', email: 'fatima.m@iiuc.ac.bd', role: 'student', enrolledAt: 'Sep 02, 2026' },
+    { id: 'usr-s3', name: 'Zayed Chowdhury', email: 'zayed.c@iiuc.ac.bd', role: 'student', enrolledAt: 'Sep 04, 2026' },
+    { id: 'usr-s4', name: 'Tahsin Ahmed', email: 'tahsin.a@iiuc.ac.bd', role: 'student', enrolledAt: 'Sep 05, 2026' }
+  ]);
+  const [isSavingAI, setIsSavingAI] = useState(false);
+  const [isProcessingRoster, setIsProcessingRoster] = useState(false);
+
+  const handleSaveAISettings = async (updatedConfig) => {
+    setIsSavingAI(true);
+    try {
+      // Optimistic update
+      setCourseAIConfig(updatedConfig);
+      await new Promise((r) => setTimeout(r, 600));
+      toast.success('Course AI parameters saved & synchronized!');
+    } catch (err) {
+      toast.error('Failed to update AI configuration.');
+    } finally {
+      setIsSavingAI(false);
+    }
+  };
+
+  const handleEnrollStudents = async (emails) => {
+    setIsProcessingRoster(true);
+    try {
+      await new Promise((r) => setTimeout(r, 600));
+      const newEntries = emails.map((email, idx) => ({
+        id: `usr-s-new-${Date.now()}-${idx}`,
+        name: email.split('@')[0].replace('.', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+        email,
+        role: 'student',
+        enrolledAt: 'Just now'
+      }));
+      setEnrolledStudents((prev) => [...newEntries, ...prev]);
+      toast.success(`Successfully enrolled ${emails.length} student(s)!`);
+    } catch (err) {
+      toast.error('Failed to enroll students.');
+    } finally {
+      setIsProcessingRoster(false);
+    }
+  };
+
+  const handleUnenrollStudent = async (studentId) => {
+    setIsProcessingRoster(true);
+    try {
+      await new Promise((r) => setTimeout(r, 400));
+      setEnrolledStudents((prev) => prev.filter((s) => s.id !== studentId));
+      toast.success('Student removed from course roster.');
+    } catch (err) {
+      toast.error('Failed to remove student.');
+    } finally {
+      setIsProcessingRoster(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-brand selection:text-white">
@@ -136,7 +203,8 @@ export default function CourseDetailPage() {
           {[
             { id: 'resources', label: 'Course Resources & Slides', icon: FileText, count: courseResources.length },
             { id: 'topics', label: 'Curriculum Topics', icon: Layers, count: course.topics.length },
-            { id: 'exams', label: 'Exam Diagnostic Prep', icon: Award }
+            { id: 'exams', label: 'Exam Diagnostic Prep', icon: Award },
+            { id: 'control-room', label: 'AI Control Room & Roster', icon: Sliders }
           ].map((tab) => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
@@ -303,9 +371,29 @@ export default function CourseDetailPage() {
           </div>
         )}
 
+        {/* Tab 4: AI Control Room & Student Roster */}
+        {activeTab === 'control-room' && (
+          <div className="space-y-6">
+            <CourseAISettingsCard
+              course={{ ...course, aiConfig: courseAIConfig }}
+              onSave={handleSaveAISettings}
+              isSaving={isSavingAI}
+              canEdit={true}
+            />
+
+            <StudentEnrollmentTable
+              course={course}
+              enrolledStudents={enrolledStudents}
+              onEnrollStudents={handleEnrollStudents}
+              onUnenrollStudent={handleUnenrollStudent}
+              isProcessing={isProcessingRoster}
+              canManage={true}
+            />
+          </div>
+        )}
+
       </main>
 
-      <FloatingRoleSwitcher />
       <Footer />
     </div>
   );

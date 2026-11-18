@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
-import FloatingRoleSwitcher from '../../components/FloatingRoleSwitcher';
 import { searchAcademicWorkspace, academicHierarchy } from '../../data/academicData';
 import {
   Search,
@@ -400,7 +399,6 @@ export default function SearchPage() {
           <SearchContent />
         </Suspense>
       </main>
-      <FloatingRoleSwitcher />
       <Footer />
     </div>
   );

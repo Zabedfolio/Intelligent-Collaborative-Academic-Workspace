@@ -66,6 +66,8 @@ export default function Sidebar() {
     setActiveTab(id);
     if (id === 'exam-prep') {
       router.push('/exams');
+    } else {
+      router.push('/dashboard');
     }
   };
 

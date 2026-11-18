@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
-import FloatingRoleSwitcher from '../../components/FloatingRoleSwitcher';
 import {
   Award,
   Check,
@@ -303,7 +302,6 @@ export default function PricingPage() {
       </main>
 
       <Footer />
-      <FloatingRoleSwitcher />
     </div>
   );
 }

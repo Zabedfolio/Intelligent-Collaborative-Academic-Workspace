@@ -4,7 +4,6 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
-import FloatingRoleSwitcher from '../../components/FloatingRoleSwitcher';
 import Pagination from '../../components/common/Pagination';
 import { sample100Questions } from '../../data/examQuestions';
 import { 
@@ -800,9 +799,6 @@ export default function ExamPage() {
         )}
 
       </main>
-
-      {/* Floating Role Switcher */}
-      <FloatingRoleSwitcher />
 
       {/* Footer */}
       <Footer />
